@@ -1,0 +1,114 @@
+---
+title: "Project2"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+  code_folding: hide
+number_sections: false
+toc: yes
+toc_depth: 3
+toc_float: yes
+pdf_document:
+  toc: yes
+toc_depth: '3'
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(devtools)
+library(dplyr)
+library(ezids) 
+```
+```{r pi}
+#load the dataset
+df <- read.csv('/Users/hariprasannaa/Downloads/vehicles.csv')
+
+#display top rows of the dataset
+xkabledplyhead(df, title = "Project2")
+
+#summary of the dataset
+summary(df)
+```
+
+```{r}
+#display the shape of dataset
+dim(df)
+```
+
+```{r col}
+#display the column names of dataset
+colnames(df)
+```
+
+```{r modify}
+
+#defining the unwanted columns
+unwantedlist <- c(
+  "barrelsA08",
+  "cityA08",
+  "cityA08U",
+  "co2A",
+  "co2TailpipeAGpm",
+  "combA08",
+  "combA08U",
+  "fuelCostA08",
+  "fuelType2",
+  "highwayA08",
+  "highwayA08U",
+  "rangeA",
+  "rangeCityA",
+  "rangeHwyA",
+  "UCityA",
+  "UHighwayA",
+  "charge120",
+  "charge240",
+  "sCharger",
+  "tCharger",
+  "c240Dscr",
+  "charge240b",
+  "c240bDscr",
+  "phevHwy",
+  "phevCity",
+  "phevComb",
+  "modifiedOn",
+  "cityCD",
+  "combinedCD",
+  "highwayCD",
+  "phevBlended",
+  "cityE",
+  "combE",
+  "combinedUF",
+  "evMotor",
+  "highwayE",
+  "highwayUF",
+  "cityUF",
+  "rangeCity",
+  "rangeHwy",
+  "range",
+  "hlv",
+  "hpv",
+  "pv2",
+  "pv4",
+  "lv2",
+  "lv4",
+  "comb08U",
+  "city08U",
+  "highway08U"
+)
+cleaned_df <- df %>% select(-all_of(unwantedlist))
+```
+```{r}
+#to check the number of missing values for each column
+missing_values <- colSums(is.na(cleaned_df))
+missing_values
+```
+```{r}
+#data cleaning
+zero_count_per_column <- cleaned_df %>%
+  summarise(across(everything(), ~sum(. == 0, na.rm = TRUE)))
+
+zero_count_per_column
+```
