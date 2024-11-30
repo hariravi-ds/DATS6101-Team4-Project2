@@ -18,9 +18,11 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
 ```{r}
+#Load necessary libraries
 library(devtools)
 library(dplyr)
 library(ezids) 
+library(caret)
 ```
 ```{r pi}
 #load the dataset
@@ -45,7 +47,7 @@ colnames(df)
 
 ```{r modify}
 
-#defining the unwanted columns
+#defining the unwanted columns (columns realted to fuel type 2 and ev)
 unwantedlist <- c(
   "barrelsA08",
   "cityA08",
@@ -101,38 +103,52 @@ unwantedlist <- c(
 )
 cleaned_df <- df %>% select(-all_of(unwantedlist))
 
-#removing ev vehicles
+#considering only from year 2013
 cleaned_df <- cleaned_df[cleaned_df$year > 2012,]
 
+#removing ev vehicles
 cleaned_df <- cleaned_df[!is.na(cleaned_df$cylinders) & cleaned_df$cylinders != "Electricity",]
 ```
 ```{r}
-#to check the number of missing values for each column
+#remove columns with only 1 unique value
+cleaned_df <- cleaned_df %>%
+  select(where(~ length(unique(.[. != ""])) > 1))
+```
+```{r}
+#check the number of missing values for each column
 missing_values <- colSums(is.na(cleaned_df))
 missing_values
 ```
 ```{r}
-#data cleaning
+#check the number of value 0 for each column
 zero_count_per_column <- cleaned_df %>%
   summarise(across(everything(), ~sum(. == 0, na.rm = TRUE)))
 
 zero_count_per_column
 ```
 ```{r}
-colnames(cleaned_df)
+#Identify categorical columns and their unique value counts
+categorical_columns <- sapply(cleaned_df, function(col) is.character(col) || is.factor(col))
+unique_values <- sapply(cleaned_df[, categorical_columns], function(col) length(unique(col)))
 
-dim(cleaned_df)
+#Separate columns for one-hot and label encoding
+one_hot_columns <- names(unique_values[unique_values <= 10]) # Threshold for one-hot encoding
+label_columns <- names(unique_values[unique_values > 10])
 
-my_dict <- c()
-for (col in colnames(cleaned_df)){
-  if(class(cleaned_df[[col]]) == "character"){
-    my_dict[[col]] <- length(unique(cleaned_df[[col]]))
-  }
+#Applying One-Hot Encoding
+if (length(one_hot_columns) > 0) {
+  one_hot_encoded <- dummyVars(~ ., data = cleaned_df[one_hot_columns], fullRank = TRUE)
+  one_hot_df <- data.frame(predict(one_hot_encoded, newdata = cleaned_df))
 }
-my_dict
 
-head(cleaned_df)
-```
-```{r}
-unique(cleaned_df$eng_dscr)
+#Applying Label Encoding
+for (column in label_columns) {
+  cleaned_df[[column]] <- as.numeric(as.factor(cleaned_df[[column]]))
+}
+
+#Combining one-hot encoded and remaining data
+final_data <- bind_cols(cleaned_df %>% select(-one_hot_columns), one_hot_df)
+
+#View the first few rows of the encoded dataset
+print(head(final_data))
 ```
