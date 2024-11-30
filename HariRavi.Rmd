@@ -96,9 +96,15 @@ unwantedlist <- c(
   "lv4",
   "comb08U",
   "city08U",
-  "highway08U"
+  "highway08U",
+  "engId"
 )
 cleaned_df <- df %>% select(-all_of(unwantedlist))
+
+#removing ev vehicles
+cleaned_df <- cleaned_df[cleaned_df$year > 2012,]
+
+cleaned_df <- cleaned_df[!is.na(cleaned_df$cylinders) & cleaned_df$cylinders != "Electricity",]
 ```
 ```{r}
 #to check the number of missing values for each column
@@ -111,4 +117,22 @@ zero_count_per_column <- cleaned_df %>%
   summarise(across(everything(), ~sum(. == 0, na.rm = TRUE)))
 
 zero_count_per_column
+```
+```{r}
+colnames(cleaned_df)
+
+dim(cleaned_df)
+
+my_dict <- c()
+for (col in colnames(cleaned_df)){
+  if(class(cleaned_df[[col]]) == "character"){
+    my_dict[[col]] <- length(unique(cleaned_df[[col]]))
+  }
+}
+my_dict
+
+head(cleaned_df)
+```
+```{r}
+unique(cleaned_df$eng_dscr)
 ```
