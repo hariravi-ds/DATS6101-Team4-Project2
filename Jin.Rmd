@@ -143,10 +143,29 @@ final_data <- bind_cols(cleaned_df %>% select(-one_hot_columns), one_hot_df)
 print(head(final_data))
 ```
 
+```{r}
+final_data <- final_data %>%
+  select(-ghgScoreA)
+```
+
+```{r}
+final_data <- final_data %>%
+  select(-ghgScore)
+```
+
+```{r}
+final_data <- final_data %>%
+  select(-year)
+```
+
+```{r}
+final_data <- final_data %>%
+  select(-id)
+```
 
 ```{r}
 library(leaps)
-regfit_full <- regsubsets(feScore ~ ., data = final_data, nvmax = 19)
+regfit_full <- regsubsets(feScore ~ ., data = final_data, nvmax = 35)
 summary(regfit_full)
 ```
 
@@ -170,10 +189,34 @@ par(mfrow = c(2, 2))
 plot(regfit_full, scale = "bic")
 ```
 ```{r}
-coef(regfit_full, 17)
+coef(regfit_full, 21)
 ```
 
+```{r}
+# Find the model size with the lowest BIC
+best_model_size <- which.min(reg_summary$bic)
+
+selected_vars <- names(which(reg_summary$which[best_model_size, ])) %>%
+  setdiff("(Intercept)")  # Remove intercept
+
+selected_data <- final_data %>%
+  select(all_of(selected_vars)) %>%
+  mutate(feScore = final_data$feScore)
+
+```
+
+```{r}
+library(car)
+library(tidyverse)
+
+vif_model <- lm(feScore ~ ., data = selected_data)
 
 
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
 
 
