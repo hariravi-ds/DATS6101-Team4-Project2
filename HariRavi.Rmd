@@ -152,3 +152,46 @@ final_data <- bind_cols(cleaned_df %>% select(-one_hot_columns), one_hot_df)
 #View the first few rows of the encoded dataset
 print(head(final_data))
 ```
+```{r}
+#Load the rpart package
+library(rpart)
+
+# Build a regression tree
+tree_model <- rpart(feScore ~ ., data = final_data, method = "class")
+
+# Plot the tree
+plot(tree_model, uniform=TRUE, main="Classification Tree")
+text(tree_model, use.n=TRUE, all=TRUE, cex=.8)
+```
+```{r}
+library(caret)
+library(ggplot2)
+library(lattice)
+
+# Convert feScore to a factor if doing classification
+final_data$feScore <- as.factor(final_data$feScore)
+
+# Split the data into training and testing sets
+set.seed(123) # For reproducibility
+trainIndex <- createDataPartition(final_data$feScore, p = 0.7, list = FALSE)
+trainData <- final_data[trainIndex, ]
+testData <- final_data[-trainIndex, ]
+
+# Train a classification tree
+library(rpart)
+kyphosisfit <- rpart(feScore ~ ., data = trainData, method = "class")
+
+# Make predictions on the test set
+predictions <- predict(kyphosisfit, newdata = testData, type = "class")
+
+# Create the confusion matrix
+cm <- confusionMatrix(predictions, reference = testData$feScore)
+
+# Print overall statistics
+print("Overall:")
+print(cm$overall)
+
+# Print per-class statistics
+print("Class:")
+print(cm$byClass)
+```
