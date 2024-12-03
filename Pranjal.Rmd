@@ -1,15 +1,13 @@
 ---
-  title: "Project2"
+title: "Project2"
 date: "`r Sys.Date()`"
 output:
   html_document:
   code_folding: hide
 number_sections: false
-toc: yes
-toc_depth: 3
 toc_float: yes
 pdf_document:
-  toc: yes
+toc: yes
 toc_depth: '3'
 ---
   
@@ -224,3 +222,44 @@ The intercept is 11.099, meaning that when all the predictors (co2, barrels08, d
 Here,the p-value (< 0.05) is extremely small, indicating that this intercept is statistically significant.
 From the above statistics we can infere that co2, displ, and fuelCost08 are statistically significant predictors of feScore, while barrels08 is not.
 The model explains a high proportion of the variance in feScore (86.22%), which indicates that the predictors used in the model are important.
+
+```{r }
+
+# Filter data for years 2013 to 2024
+
+filtered_data <- fd%>%
+  filter(year >= 2013 & year <= 2024)
+
+# Calculate the mean feScore for each year
+feScore_mean <- filtered_data %>%
+  group_by(year) %>%
+  summarise(mean_feScore = mean(as.numeric(feScore), na.rm = TRUE))
+
+print(feScore_mean)
+
+```
+
+```{r lg}
+#Fescore trend over the years (2013-2024)
+
+ggplot(feScore_mean, aes(x = year, y = mean_feScore)) +
+  geom_line(color = "blue", size = 1) +      # Line
+  geom_point(color = "red", size = 2) +      # Points on the line
+  scale_x_continuous(
+    breaks = seq(2013, 2025, 1),            # Set x-axis breaks for each year
+    labels = as.character(seq(2013, 2025, 1)) # Ensure labels are integers
+  ) +
+  labs(
+    title = "Trend of Mean Fuel Economy Score (2013-2022)",
+    x = "Years",
+    y = "Mean feScore"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.title.x = element_text(size = 14),
+    axis.title.y = element_text(size = 14),
+    axis.text.x = element_text(size = 12)   
+  )
+
+```
