@@ -117,6 +117,12 @@ zero_count_per_column
 ```
 
 ```{r}
+cleaned_df <- cleaned_df %>%
+  select(-mpgData)
+```
+
+
+```{r}
 #Identify categorical columns and their unique value counts
 categorical_columns <- sapply(cleaned_df, function(col) is.character(col) || is.factor(col))
 unique_values <- sapply(cleaned_df[, categorical_columns], function(col) length(unique(col)))
@@ -164,6 +170,36 @@ final_data <- final_data %>%
 ```
 
 ```{r}
+final_data <- final_data %>%
+  select(-mfrCode)
+```
+
+```{r}
+final_data <- final_data %>%
+  select(-trany)
+```
+
+```{r}
+final_data <- final_data %>%
+  select(-eng_dscr)
+```
+
+```{r}
+final_data <- final_data %>%
+  select(-model)
+```
+
+```{r}
+final_data <- final_data %>%
+  select(-baseModel)
+```
+
+```{r}
+final_data <- final_data %>%
+  select(-fuelType)
+```
+
+```{r}
 library(leaps)
 regfit_full <- regsubsets(feScore ~ ., data = final_data, nvmax = 35)
 summary(regfit_full)
@@ -189,7 +225,7 @@ par(mfrow = c(2, 2))
 plot(regfit_full, scale = "bic")
 ```
 ```{r}
-coef(regfit_full, 21)
+coef(regfit_full, 18)
 ```
 
 ```{r}
@@ -218,5 +254,88 @@ vif_df <- as.data.frame(vif_values) %>%
   rownames_to_column(var = "Variable")
 print(vif_df)
 ```
+
+```{r}
+lm_data <- selected_data %>%
+  select(-barrels08)
+
+vif_model <- lm(feScore ~ ., data = lm_data)
+
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+
+```{r}
+lm_data <- lm_data %>%
+  select(-youSaveSpend)
+
+vif_model <- lm(feScore ~ ., data = lm_data)
+
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+```{r}
+lm_data <- lm_data %>%
+  select(-UHighway)
+
+vif_model <- lm(feScore ~ ., data = lm_data)
+
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+```{r}
+lm_data <- lm_data %>%
+  select(-co2)
+
+vif_model <- lm(feScore ~ ., data = lm_data)
+
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+
+```{r}
+lm_data <- lm_data %>%
+  select(-displ)
+
+vif_model <- lm(feScore ~ ., data = lm_data)
+
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+```{r}
+
+lm_model <- lm(feScore ~ ., data = lm_data)
+summary(lm_model)
+```
+
+```{r}
+library(corrplot)
+cor_matrix <- cor(lm_data, use = "complete.obs")
+corrplot(cor_matrix, method = "number", type = "upper",tl.cex = 0.7)
+```
+
+
+
+
 
 
