@@ -24,7 +24,7 @@ library(caret)
 ```
 ```{r pi}
 #load the dataset
-df <- read.csv("C:\\Users\\HP\\OneDrive\\Documents\\Project 2\\vehicles.csv")
+df <- read.csv("/Users/hariprasannaa/Downloads/vehicles.csv")
 
 #display top rows of the dataset
 xkabledplyhead(df, title = "Project2")

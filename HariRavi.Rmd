@@ -103,9 +103,16 @@ unwantedlist <- c(
   "city08U",
   "highway08U",
   "engId",
-  "model",
+  "ghgScoreA",
   "ghgScore",
-  "baseModel"
+  "year",
+  "id",
+  "mfrCode",
+  "trany",
+  "eng_dscr",
+  "model",
+  "baseModel",
+  "fuelType"
   
 )
 cleaned_df <- df %>% select(-all_of(unwantedlist))
