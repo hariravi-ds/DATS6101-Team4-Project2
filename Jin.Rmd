@@ -95,11 +95,6 @@ cleaned_df <- cleaned_df[cleaned_df$year > 2012,]
 cleaned_df <- cleaned_df[!is.na(cleaned_df$cylinders) & cleaned_df$cylinders != "Electricity",]
 ```
 
-```{r}
-#remove columns with only 1 unique value
-cleaned_df <- cleaned_df %>%
-  select(where(~ length(unique(.[. != ""])) > 1))
-```
 
 ```{r}
 #check the number of missing values for each column
@@ -117,10 +112,25 @@ zero_count_per_column
 ```
 
 ```{r}
+#remove columns that are for car identification
 cleaned_df <- cleaned_df %>%
-  select(-mpgData)
+  select(-c(createdOn, mfrCode,
+            baseModel, year,
+            model, make, id,
+            mpgData))
 ```
 
+```{r}
+#remove redundant columns and ghg score, which would be another dependent variable
+cleaned_df <- cleaned_df %>%
+  select(-c(co2TailpipeGpm, ghgScore, ghgScoreA, fuelType))
+```
+
+```{r}
+#remove empty column
+cleaned_df <- cleaned_df %>%
+  select(-trans_dscr)
+```
 
 ```{r}
 #Identify categorical columns and their unique value counts
@@ -150,88 +160,25 @@ print(head(final_data))
 ```
 
 ```{r}
-final_data <- final_data %>%
-  select(-ghgScoreA)
-```
-
-```{r}
-final_data <- final_data %>%
-  select(-ghgScore)
-```
-
-```{r}
-final_data <- final_data %>%
-  select(-year)
-```
-
-```{r}
-final_data <- final_data %>%
-  select(-id)
-```
-
-```{r}
-final_data <- final_data %>%
-  select(-mfrCode)
-```
-
-```{r}
-final_data <- final_data %>%
-  select(-trany)
-```
-
-```{r}
-final_data <- final_data %>%
-  select(-eng_dscr)
-```
-
-```{r}
-final_data <- final_data %>%
-  select(-model)
-```
-
-```{r}
-final_data <- final_data %>%
-  select(-baseModel)
-```
-
-```{r}
-final_data <- final_data %>%
-  select(-fuelType)
+#removing categorical variables with two many categories - avoid overfitting
+linear_df <- final_data %>%
+  select(-c(eng_dscr, trany, VClass))
 ```
 
 ```{r}
 library(leaps)
-regfit_full <- regsubsets(feScore ~ ., data = final_data, nvmax = 35)
-summary(regfit_full)
-```
-
-```{r}
+regfit_full <- regsubsets(feScore ~ ., data = linear_df, nvmax = 35)
 reg_summary <- summary(regfit_full)
-reg_summary$rsq
 ```
 
-```{r}
-par(mfrow = c(2, 2))
-plot(reg_summary$rss ,xlab = "Number of Variables", ylab = "RSS", type = "l")
-plot(reg_summary$adjr2 ,xlab = "Number of Variables", ylab = "Adjusted RSq", type = "l")
-which.max(reg_summary$adjr2)
-```
-```{r}
-which.min(reg_summary$cp)
-which.min(reg_summary$bic)
-```
-```{r}
-par(mfrow = c(2, 2))
-plot(regfit_full, scale = "bic")
-```
-```{r}
-coef(regfit_full, 18)
-```
 
 ```{r}
 # Find the model size with the lowest BIC
 best_model_size <- which.min(reg_summary$bic)
+best_model_size
+```
 
+```{r}
 selected_vars <- names(which(reg_summary$which[best_model_size, ])) %>%
   setdiff("(Intercept)")  # Remove intercept
 
@@ -323,7 +270,6 @@ vif_df <- as.data.frame(vif_values) %>%
 print(vif_df)
 ```
 ```{r}
-
 lm_model <- lm(feScore ~ ., data = lm_data)
 summary(lm_model)
 ```
@@ -333,8 +279,6 @@ library(corrplot)
 cor_matrix <- cor(lm_data, use = "complete.obs")
 corrplot(cor_matrix, method = "number", type = "upper",tl.cex = 0.7)
 ```
-
-
 
 
 
