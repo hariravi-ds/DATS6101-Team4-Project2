@@ -258,7 +258,7 @@ print(vif_df)
 
 ```{r}
 lm_data <- lm_data %>%
-  select(-displ)
+  select(-cylinders)
 
 vif_model <- lm(feScore ~ ., data = lm_data)
 
@@ -275,10 +275,34 @@ summary(lm_model)
 ```
 
 ```{r}
-library(corrplot)
-cor_matrix <- cor(lm_data, use = "complete.obs")
-corrplot(cor_matrix, method = "number", type = "upper",tl.cex = 0.7)
+plot(lm_model)
 ```
+```{r}
+lm_model2 <- lm(feScore ~ comb08 + displ + driveFront.Wheel.Drive +
+                 fuelType1Natural.Gas + fuelType1Premium.Gasoline +
+                 atvTypeDiesel + atvTypeFFV + atvTypeHybrid +
+                 atvTypePlug.in.Hybrid + startStopY +
+                 fuelType1Premium.Gasoline * atvTypeHybrid +
+                  fuelType1Premium.Gasoline * atvTypePlug.in.Hybrid, data = lm_data)
+summary(lm_model2)
+```
+
+```{r}
+plot(lm_model2)
+```
+
+
+```{r}
+anova(lm_model, lm_model2) -> anovaRes
+anovaRes
+```
+
+
+
+
+
+
+
 
 
 
