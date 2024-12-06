@@ -103,11 +103,8 @@ unwantedlist <- c(
   "city08U",
   "highway08U",
   "engId",
-  "ghgScoreA",
   "id",
-  "baseModel",
-  "fuelType",
-  "co2"
+  "co2TailpipeGpm"
 )
 cleaned_df <- df %>% select(-all_of(unwantedlist))
 ```
@@ -147,34 +144,100 @@ zero_count_per_column <- cleaned_df %>%
 zero_count_per_column
 ```
 ```{r}
-#Identify categorical columns and their unique value counts
+# Identify categorical columns and their unique value counts
 categorical_columns <- sapply(cleaned_df, function(col) is.character(col) || is.factor(col))
 unique_values <- sapply(cleaned_df[, categorical_columns], function(col) length(unique(col)))
 
-#Separate columns for one-hot and label encoding
+# Separate columns for one-hot and label encoding
 one_hot_columns <- names(unique_values[unique_values <= 10]) # Threshold for one-hot encoding
-label_columns <- names(unique_values[unique_values > 10])
+label_columns <- names(unique_values[unique_values > 10])    # For large categorical variables
 
-#Applying One-Hot Encoding
+# Applying One-Hot Encoding
 if (length(one_hot_columns) > 0) {
+  # Automatically drop one level per categorical variable to avoid multicollinearity
   one_hot_encoded <- dummyVars(~ ., data = cleaned_df[one_hot_columns], fullRank = TRUE)
   one_hot_df <- data.frame(predict(one_hot_encoded, newdata = cleaned_df))
 }
 
-#Applying Label Encoding
+# Applying Label Encoding
 for (column in label_columns) {
+  # Convert categories to numeric (ensure they are not interpreted as ordinal values)
   cleaned_df[[column]] <- as.numeric(as.factor(cleaned_df[[column]]))
 }
 
-#Combining one-hot encoded and remaining data
-final_data <- bind_cols(cleaned_df %>% select(-one_hot_columns), one_hot_df)
+# Combining One-Hot Encoded Data and Remaining Data
+# Drop original one-hot columns from the dataset to avoid redundancy
+final_data <- bind_cols(cleaned_df %>% select(-all_of(one_hot_columns)), one_hot_df)
 
 #View the first few rows of the encoded dataset
 print(head(final_data))
 ```
 ```{r}
+alias(lm(comb08 ~ ., data = final_data))
+```
+```{r}
+library(car)
+library(tidyverse)
+
+vif_model <- lm(feScore ~ ., data = selected_data)
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+```{r}
+lm_data <- selected_data %>%
+  select(-barrels08)
+
+vif_model <- lm(feScore ~ ., data = lm_data)
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+```{r}
+lm_data <- lm_data %>%
+  select(-youSaveSpend)
+
+vif_model <- lm(feScore ~ ., data = lm_data)
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+```{r}
+lm_data <- lm_data %>%
+  select(-UHighway)
+
+vif_model <- lm(feScore ~ ., data = lm_data)
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+```{r}
+lm_data <- lm_data %>%
+  select(-co2TailpipeGpm)
+
+vif_model <- lm(feScore ~ ., data = lm_data)
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+```{r}
 #Building a regression tree
-tree_model <- rpart(feScore ~ ., data = final_data, method = "anova")
+tree_model <- rpart(feScore ~ ., data = lm_data, method = "anova")
 
 #Plotting the built tree
 plot(tree_model, uniform=TRUE, main="Classification Tree")
@@ -187,9 +250,9 @@ library(caret)
 
 # Split the data into training and testing sets
 set.seed(123) # For reproducibility
-trainIndex <- createDataPartition(final_data$feScore, p = 0.7, list = FALSE)
-trainData <- final_data[trainIndex, ]
-testData <- final_data[-trainIndex, ]
+trainIndex <- createDataPartition(lm_data$feScore, p = 0.7, list = FALSE)
+trainData <- lm_data[trainIndex, ]
+testData <- lm_data[-trainIndex, ]
 
 # Train a regression tree
 tree_fit <- rpart(feScore ~ ., data = trainData, method = "anova")
@@ -214,7 +277,6 @@ r_squared <- 1 - sum((testData$feScore - predictions)^2) / sum((testData$feScore
 cat("Mean Squared Error (MSE):", mse, "\n")
 cat("Root Mean Squared Error (RMSE):", rmse, "\n")
 cat("R-Squared:", r_squared, "\n")
-
 ```
 ```{r}
 # Calculate the 10th percentile of feScore
@@ -258,9 +320,6 @@ ggplot(top_10_features, aes(x = reorder(Feature, Importance), y = Importance)) +
   labs(title = "Feature Importance", x = "Feature", y = "Importance Score") +
   theme_minimal()
 
-
-
 # Check the structure of the data frame
 print(importance_df)
-
 ```
