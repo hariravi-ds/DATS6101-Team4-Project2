@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 ---
 title: "Project2"
 date: "`r Sys.Date()`"
@@ -262,4 +263,310 @@ ggplot(feScore_mean, aes(x = year, y = mean_feScore)) +
     axis.text.x = element_text(size = 12)   
   )
 
+=======
+---
+title: "Project2"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+  code_folding: hide
+number_sections: false
+toc_float: yes
+pdf_document:
+toc: yes
+toc_depth: '3'
+---
+  
+  This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+#Load necessary libraries
+library(devtools)
+library(dplyr)
+library(ezids) 
+library(caret)
+```
+```{r pi}
+#load the dataset
+df <- read.csv("C:\\Users\\HP\\OneDrive\\Documents\\Project 2\\vehicles.csv")
+
+#display top rows of the dataset
+xkabledplyhead(df, title = "Project2")
+
+#summary of the dataset
+summary(df)
+```
+
+```{r}
+#display the shape of dataset
+dim(df)
+```
+
+```{r col}
+#display the column names of dataset
+colnames(df)
+```
+
+```{r modify}
+
+#defining the unwanted columns (columns realted to fuel type 2 and ev)
+unwantedlist <- c(
+  "barrelsA08",
+  "cityA08",
+  "cityA08U",
+  "co2A",
+  "co2TailpipeAGpm",
+  "combA08",
+  "combA08U",
+  "fuelCostA08",
+  "fuelType2",
+  "highwayA08",
+  "highwayA08U",
+  "rangeA",
+  "rangeCityA",
+  "rangeHwyA",
+  "UCityA",
+  "UHighwayA",
+  "charge120",
+  "charge240",
+  "sCharger",
+  "tCharger",
+  "c240Dscr",
+  "charge240b",
+  "c240bDscr",
+  "phevHwy",
+  "phevCity",
+  "phevComb",
+  "modifiedOn",
+  "cityCD",
+  "combinedCD",
+  "highwayCD",
+  "phevBlended",
+  "cityE",
+  "combE",
+  "combinedUF",
+  "evMotor",
+  "highwayE",
+  "highwayUF",
+  "cityUF",
+  "rangeCity",
+  "rangeHwy",
+  "range",
+  "hlv",
+  "hpv",
+  "pv2",
+  "pv4",
+  "lv2",
+  "lv4",
+  "comb08U",
+  "city08U",
+  "highway08U",
+  "engId"
+)
+cleaned_df <- df %>% select(-all_of(unwantedlist))
+
+#considering only from year 2013
+cleaned_df <- cleaned_df[cleaned_df$year > 2012,]
+
+#removing ev vehicles
+cleaned_df <- cleaned_df[!is.na(cleaned_df$cylinders) & cleaned_df$cylinders != "Electricity",]
+```
+
+
+
+```{r}
+#remove columns with only 1 unique value
+cleaned_df <- cleaned_df %>%
+  select(where(~ length(unique(.[. != ""])) > 1))
+
+```
+
+```{r}
+#check the number of missing values for each column
+missing_values <- colSums(is.na(cleaned_df))
+missing_values
+```
+```{r}
+#check the number of value 0 for each column
+zero_count_per_column <- cleaned_df %>%
+  summarise(across(everything(), ~sum(. == 0, na.rm = TRUE)))
+
+zero_count_per_column
+```
+```{r}
+#Identify categorical columns and their unique value counts
+categorical_columns <- sapply(cleaned_df, function(col) is.character(col) || is.factor(col))
+unique_values <- sapply(cleaned_df[, categorical_columns], function(col) length(unique(col)))
+
+#Separate columns for one-hot and label encoding
+one_hot_columns <- names(unique_values[unique_values <= 10]) # Threshold for one-hot encoding
+label_columns <- names(unique_values[unique_values > 10])
+
+#Applying One-Hot Encoding
+if (length(one_hot_columns) > 0) {
+  one_hot_encoded <- dummyVars(~ ., data = cleaned_df[one_hot_columns], fullRank = TRUE)
+  one_hot_df <- data.frame(predict(one_hot_encoded, newdata = cleaned_df))
+}
+
+#Applying Label Encoding
+for (column in label_columns) {
+  cleaned_df[[column]] <- as.numeric(as.factor(cleaned_df[[column]]))
+}
+
+#Combining one-hot encoded and remaining data
+fd <- bind_cols(cleaned_df %>% select(-one_hot_columns), one_hot_df)
+
+#View the first few rows of the encoded dataset
+print(head(fd))
+```
+#NEW CODE
+
+```{r }
+nrow(fd)
+ncol(fd)
+summary(fd)
+
+
+```
+
+```{r univariate Analysis}
+
+ggplot(fd, aes(x = feScore)) + 
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") + 
+  theme_minimal() + 
+  labs(title = "Distribution of Fuel Efficiency Score (feScore)", x = "Fuel Efficiency Score", y = "Frequency")
+
+```
+
+```{r box}
+ggplot(fd, aes(y = feScore)) + 
+  geom_boxplot(fill = "lightgreen") + 
+  theme_minimal() + 
+  labs(title = "Boxplot of Fuel Efficiency Score (feScore)", y = "Fuel Efficiency Score")
+# checking for the outliers in the dependent variable
+
+```
+```{r corr}
+
+#checking for the correlation 
+cor(fd$feScore, fd$co2)   
+cor(fd$feScore, fd$barrels08) 
+cor(fd$feScore, fd$displ) 
+cor(fd$feScore, fd$fuelCost08) 
+```
+
+```{r co2}
+ggplot(fd, aes(x = co2, y = feScore)) + 
+  geom_point() + 
+  theme_minimal() + 
+  labs(title = "Scatterplot of CO2 vs Fuel Efficiency Score", x = "CO2 Emissions", y = "Fuel Efficiency Score")
+
+```
+
+```{r f}
+ggplot(fd, aes(x = factor(fuelType), y = feScore)) + 
+  geom_boxplot() + 
+  theme_minimal() + 
+  labs(title = "Fuel Efficiency Score by Fuel Type", x = "Fuel Type", y = "Fuel Efficiency Score")
+
+```
+
+```{r interaction}
+
+fd$co2_barrel_interaction <- fd$co2 * fd$barrels08
+model <- lm(feScore ~ co2 + barrels08 + displ + fuelCost08, data = fd)
+summary(model)
+
+```
+
+We are predicting fuel efficiency based on the values of co2 (CO2 emissions), barrels08 (Barrels per year), displ (Engine displacement), and fuelCost08 (Fuel cost per year).
+The intercept is 11.099, meaning that when all the predictors (co2, barrels08, displ, and fuelCost08) are zero, the predicted feScore is 11.099.
+Here,the p-value (< 0.05) is extremely small, indicating that this intercept is statistically significant.
+From the above statistics we can infere that co2, displ, and fuelCost08 are statistically significant predictors of feScore, while barrels08 is not.
+The model explains a high proportion of the variance in feScore (86.22%), which indicates that the predictors used in the model are important.
+
+```{r }
+
+# Filter data for years 2013 to 2024
+
+filtered_data <- fd%>%
+  filter(year >= 2013 & year <= 2024)
+
+# Calculate the mean feScore for each year
+feScore_mean <- filtered_data %>%
+  group_by(year) %>%
+  summarise(mean_feScore = mean(as.numeric(feScore), na.rm = TRUE))
+
+print(feScore_mean)
+
+```
+
+```{r lg}
+#Fescore trend over the years (2013-2024)
+
+ggplot(feScore_mean, aes(x = year, y = mean_feScore)) +
+  geom_line(color = "blue", size = 1) +      # Line
+  geom_point(color = "red", size = 2) +      # Points on the line
+  scale_x_continuous(
+    breaks = seq(2013, 2025, 1),            # Set x-axis breaks for each year
+    labels = as.character(seq(2013, 2025, 1)) # Ensure labels are integers
+  ) +
+  labs(
+    title = "Trend of Mean Fuel Economy Score (2013-2022)",
+    x = "Years",
+    y = "Mean feScore"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.title.x = element_text(size = 14),
+    axis.title.y = element_text(size = 14),
+    axis.text.x = element_text(size = 12)   
+  )
+
+```
+```{r top10}
+
+df$make <- as.factor(df$make)
+
+# Check the structure of the dataset to confirm the conversion
+str(df)
+levels(df$make)
+
+
+```
+
+
+```{r new}
+library (ggplot2)
+# Fescore trend over the years (2013-2024) - Inverted
+
+# Inverting the feScore values
+feScore_mean$inverted_feScore <- max(feScore_mean$mean_feScore) - 
+  (feScore_mean$mean_feScore - min(feScore_mean$mean_feScore))
+
+# Plotting the inverted trend
+ggplot(feScore_mean, aes(x = year, y = inverted_feScore)) +
+  geom_line(color = "blue", size = 1) +      # Line
+  geom_point(color = "red", size = 2) +      # Points on the line
+  scale_x_continuous(
+    breaks = seq(2013, 2025, 1),            # Set x-axis breaks for each year
+    labels = as.character(seq(2013, 2025, 1)) # Ensure labels are integers
+  ) +
+  labs(
+    title = "Trend of Mean Fuel Economy Score (2013-2024)",
+    x = "Years",
+    y = "Mean feScore "
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.title.x = element_text(size = 14),
+    axis.title.y = element_text(size = 14),
+    axis.text.x = element_text(size = 12)   
+  )
+
+>>>>>>> Stashed changes
 ```
