@@ -27,7 +27,7 @@ library(caret)
 
 ```{r pi}
 #load the dataset
-df <- read.csv('Fuel Economy Data.csv')
+df <- read.csv('/Users/hariprasannaa/Downloads/vehicles.csv')
 ```
 
 ```{r modify}
@@ -95,8 +95,6 @@ cleaned_df <- cleaned_df %>%
 #removing ev vehicles
 cleaned_df <- cleaned_df[!is.na(cleaned_df$cylinders) & cleaned_df$cylinders != "Electricity",]
 ```
-
-
 ```{r}
 #check the number of missing values for each column
 missing_values <- colSums(is.na(cleaned_df))
@@ -111,24 +109,17 @@ zero_count_per_column <- cleaned_df %>%
 
 zero_count_per_column
 ```
-
 ```{r}
 #remove columns that are for car identification
-cleaned_df <- cleaned_df %>%
-  select(-c(createdOn, mfrCode,
-            baseModel,
-            model, make, id,
-            mpgData))
+#cleaned_df <- cleaned_df %>%select(-c(createdOn, mfrCode,baseModel,model, make, id,mpgData))
+#cleaned_df <- cleaned_df %>%select(-c(createdOn, mfrCode,baseModel,model, make, id,mpgData))
+cleaned_df <- cleaned_df %>%select(-c(createdOn,mfrCode,baseModel,model,make,id,mpgData,year))
 #remove redundant columns and ghg score and fescore, which would be another dependent variable
-cleaned_df <- cleaned_df %>%
-  select(-c(co2TailpipeGpm, ghgScore, ghgScoreA, fuelType, feScore))
+#cleaned_df <- cleaned_df %>%select(-c(co2TailpipeGpm, ghgScore, ghgScoreA, fuelType, feScore))
+cleaned_df <- cleaned_df %>%select(-c(co2TailpipeGpm, fuelType, feScore, ghgScore, ghgScoreA,fuelType1))
 #remove empty column
-cleaned_df <- cleaned_df %>%
-  select(-trans_dscr)
+cleaned_df <- cleaned_df %>%select(-trans_dscr)
 ```
-
-
-
 ```{r}
 #Identify categorical columns and their unique value counts
 categorical_columns <- sapply(cleaned_df, function(col) is.character(col) || is.factor(col))
@@ -140,6 +131,7 @@ label_columns <- names(unique_values[unique_values > 10])
 
 #Applying One-Hot Encoding
 if (length(one_hot_columns) > 0) {
+  print(one_hot_columns)
   one_hot_encoded <- dummyVars(~ ., data = cleaned_df[one_hot_columns], fullRank = TRUE)
   one_hot_df <- data.frame(predict(one_hot_encoded, newdata = cleaned_df))
 }
@@ -155,19 +147,14 @@ final_data <- bind_cols(cleaned_df %>% select(-one_hot_columns), one_hot_df)
 #View the first few rows of the encoded dataset
 print(head(final_data))
 ```
-
 ```{r}
 #removing categorical variables with two many categories - avoid overfitting
-linear_df <- final_data %>%
-  select(-c(eng_dscr, trany, VClass))
+linear_df <- final_data %>%select(-c(trany))
 #remove any mpg because co2 is directly related to mpg (which is tailpipe CO2 in grams/mile)
 #also remove barrels08 as it is basically proportional to co2
-linear_df <- linear_df %>%
-  select(-c(comb08, UCity, UHighway, highway08, city08, barrels08))
+#linear_df <- linear_df %>%select(-c(comb08, UCity, UHighway, highway08, city08, barrels08))
+linear_df <- linear_df %>%select(-c(comb08,UHighway,highway08, city08, barrels08))
 ```
-
-
-
 ```{r}
 library(leaps)
 regfit_full <- regsubsets(co2 ~ ., data = linear_df, nvmax = 35)
@@ -190,7 +177,6 @@ selected_vars <- names(which(reg_summary$which[best_model_size, ])) %>%
 selected_data <- final_data %>%
   select(all_of(selected_vars)) %>%
   mutate(co2 = final_data$co2) #add our dependent variable
-
 ```
 
 ```{r}
@@ -224,7 +210,6 @@ vif_df <- as.data.frame(vif_values) %>%
   rownames_to_column(var = "Variable")
 print(vif_df)
 ```
-
 ```{r}
 lm_model <- lm(co2 ~ ., data = lm_data)
 summary(lm_model)
