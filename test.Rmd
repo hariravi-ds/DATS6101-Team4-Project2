@@ -6,7 +6,6 @@ output:
   code_folding: hide
 number_sections: false
 toc: yes
-toc_depth: 3
 toc_float: yes
 pdf_document:
   toc: yes
@@ -29,7 +28,9 @@ library(caret)
 #load the dataset
 df <- read.csv('/Users/hariprasannaa/Downloads/vehicles.csv')
 ```
-
+```{r}
+summary(df)
+```
 ```{r modify}
 
 #defining the unwanted columns (columns realted to fuel type 2 and ev)
