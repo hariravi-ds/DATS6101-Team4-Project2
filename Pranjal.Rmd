@@ -487,21 +487,6 @@ Here,the p-value (< 0.05) is extremely small, indicating that this intercept is 
 From the above statistics we can infere that co2, displ, and fuelCost08 are statistically significant predictors of feScore, while barrels08 is not.
 The model explains a high proportion of the variance in feScore (86.22%), which indicates that the predictors used in the model are important.
 
-```{r }
-
-# Filter data for years 2013 to 2024
-
-filtered_data <- fd%>%
-  filter(year >= 2013 & year <= 2024)
-
-# Calculate the mean feScore for each year
-feScore_mean <- filtered_data %>%
-  group_by(year) %>%
-  summarise(mean_feScore = mean(as.numeric(feScore), na.rm = TRUE))
-
-print(feScore_mean)
-
-```
 
 ```{r lg}
 #Fescore trend over the years (2013-2024)
