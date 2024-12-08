@@ -1,5 +1,5 @@
 ---
-title: "Jin"
+title: "Linear Regression Model"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -234,7 +234,4 @@ summary(lm_model)
 ```{r}
 plot(lm_model)
 ```
-
-
-
 
