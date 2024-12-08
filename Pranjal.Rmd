@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 ---
 title: "Project2"
 date: "`r Sys.Date()`"
@@ -23,6 +22,7 @@ library(dplyr)
 library(ezids) 
 library(caret)
 ```
+
 ```{r pi}
 #load the dataset
 df <- read.csv("C:\\Users\\HP\\OneDrive\\Documents\\Project 2\\vehicles.csv")
@@ -156,15 +156,7 @@ fd <- bind_cols(cleaned_df %>% select(-one_hot_columns), one_hot_df)
 #View the first few rows of the encoded dataset
 print(head(fd))
 ```
-#NEW CODE
-
-```{r }
-nrow(fd)
-ncol(fd)
-summary(fd)
-
-
-```
+The provided R code snippet utilizes the ggplot2 package to generate a histogram that visualizes the distribution of fuel efficiency scores (feScore) within the dataset. This histogram offers a clear graphical representation of the frequency of various feScore values, facilitating an intuitive understanding of how fuel efficiency differs among the analyzed vehicles. Notably, the histogram reveals that the maximum frequency of feScore is 5, and as the feScore increases beyond this point, the frequency of occurrences begins to decline, indicating a trend where higher fuel efficiency scores are less common in the dataset.
 
 ```{r univariate Analysis}
 
@@ -174,6 +166,8 @@ ggplot(fd, aes(x = feScore)) +
   labs(title = "Distribution of Fuel Efficiency Score (feScore)", x = "Fuel Efficiency Score", y = "Frequency")
 
 ```
+
+A box plot has been generated to assess the presence of outliers in the fuel efficiency score (feScore). ​The analysis indicates that outliers begin to appear when the feScore exceeds 8.75, suggesting values that reflect a higher-than-average level of fuel efficiency.
 
 ```{r box}
 ggplot(fd, aes(y = feScore)) + 
