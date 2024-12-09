@@ -250,6 +250,7 @@ fviz_nbclust(cluster_df, kmeans, method = "wss") +
 ```{r}
 # Compute k-means with k = 4
 set.seed(123)
+#scaling
 scaled_df <- scale(cluster_df)
 km_res <- kmeans(scaled_df, 4, nstart = 25)
 ```
