@@ -28,7 +28,7 @@ options(scientific=T, digits = 3)
 
 ### **Abstract**
 
-This project investigates factors influencing carbon dioxide (CO2) emissions from vehicles, focusing on models released between 2020 and 2024. Using fuel economy data from U.S. Department of Energy, we analyze the relationships between vehicle attributes and the amount of CO2 emitted from a vehicle's tailpipe. The study addresses three objectives: constructing a linear regression model to quantify the impact of vehicle features on CO2 emissions, clustering vehicles based on their attributes to identify distinct groups and their defining characteristics, and implementing a classification tree to predict vehicle sustainability based on emissions. Our goal is to offer insights into the variables that have critical impact in CO2 emissions of modern vehicles, provide perspectives that could support environmental policies.
+With growing concerns about environmental sustainability and the impact of greenhouse gases, this project investigates factors influencing carbon dioxide (CO2) emissions from vehicles, focusing on models released between 2020 and 2024. Using a dataset comprising 40,000 vehicle records with 85 detailed attributes, sourced from the U.S. Department of Energy (DOE), the relationships between vehicle characteristics and the amount of CO2 emitted from a vehicle's tailpipe are analyzed. Additionally, three key SMART questions were addressed to provide deeper insights into the data. The study addresses three objectives: constructing a linear regression model to quantify the impact of vehicle features on CO2 emissions, clustering vehicles based on their attributes to identify distinct groups and their defining characteristics, and implementing a classification tree to predict vehicle sustainability based on emissions. The goal is to offer insights into the variables that critically impact CO2 emissions in modern vehicles and provide perspectives that could support environmental policies.
 
 ```{r libraries}
 #Load necessary libraries
@@ -140,11 +140,8 @@ zero_count_per_column
 
 ```{r remove_columns}
 #remove columns that are for car identification
-#cleaned_df <- cleaned_df %>%select(-c(createdOn, mfrCode,baseModel,model, make, id,mpgData))
-#cleaned_df <- cleaned_df %>%select(-c(createdOn, mfrCode,baseModel,model, make, id,mpgData))
 cleaned_df <- cleaned_df %>%select(-c(createdOn,mfrCode,baseModel,model,make,id,mpgData,year))
 #remove redundant columns and ghg score and fescore, which would be another dependent variable
-#cleaned_df <- cleaned_df %>%select(-c(co2TailpipeGpm, ghgScore, ghgScoreA, fuelType, feScore))
 cleaned_df <- cleaned_df %>%select(-c(co2TailpipeGpm, fuelType, feScore, ghgScore, ghgScoreA,fuelType1))
 #remove empty column
 cleaned_df <- cleaned_df %>%select(-trans_dscr,atvType)
@@ -293,7 +290,7 @@ ggplot(pca_df, aes(x = PC1, y = PC2, color = cluster_df$Cluster)) +
 
 To better understand the characteristics that define each cluster, we examined the distribution of engine displacement across the four groups. The boxplot revealed that Cluster 2 consistently exhibited higher engine displacement compared to the other clusters. To statistically validate this observation, we conducted an ANOVA test, which returned a low p-value, indicating a significant difference in engine displacement between the clusters.
 
-```{r eng_dspl}
+```{r eng_dspl_cluster}
 # Create boxplots for engine displacement
 ggplot(cluster_df, aes(x = Cluster, y = displ, fill = Cluster)) +
   geom_boxplot() +
@@ -358,7 +355,7 @@ xkabledplyhead(cluster_means, 4)
 
 By examining these clusters, we can draw several conclusions about sustainability and emissions. Cluster 2, with its larger engines and higher emissions, represents the least sustainable group, while Clusters 3 and 4, with their smaller engines and lower emissions, reflect more fuel-efficient, environmentally friendly vehicles. Cluster 1 falls somewhere in between, with moderate emissions and a mix of vehicle types. This analysis helps identify which vehicle features contribute most to CO₂ emissions and which types of vehicles are more sustainable.
 
-### References
+### **References**
 
 EPA Press Office. (2024, November 25). EPA Report Shows US Fuel Economy Hits Record High and CO2 Emissions Reach a Record Low. EPA. <https://www.epa.gov/newsreleases/epa-report-shows-us-fuel-economy-hits-record-high-and-co2-emissions-reach-record-low#>:\~:text=For%20MY%202023%2C%20new%20vehicle,of%20319%20grams%20per%20mile.
 
