@@ -1,5 +1,5 @@
 ---
-title: "Jin"
+title: "Linear Regression Model"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -228,92 +228,8 @@ print(vif_df)
 ```{r}
 lm_model <- lm(co2 ~ ., data = lm_data)
 summary(lm_model)
-
 ```
 
 ```{r}
 plot(lm_model)
 ```
-
-
-```{r}
-library(factoextra)
-cluster_df <- lm_data
-
-# Elbow method
-fviz_nbclust(cluster_df, kmeans, method = "wss") +
-    geom_vline(xintercept = 4, linetype = 2)+
-  labs(subtitle = "Elbow method")
-
-```
-
-```{r}
-# Compute k-means with k = 4
-set.seed(123)
-scaled_df <- scale(cluster_df)
-km_res <- kmeans(scaled_df, 4, nstart = 25)
-```
-
-
-
-```{r}
-# Cluster centers
-print(km_res$centers)
-
-
-```
-
-```{r}
-library(ggplot2)
-
-# Add cluster assignments to the original data for visualization
-cluster_df$Cluster <- as.factor(km_res$cluster)
-
-# PCA for dimensionality reduction
-pca_result <- prcomp(scaled_df)
-pca_df <- data.frame(pca_result$x)
-
-# Plotting with ggplot2
-ggplot(pca_df, aes(x = PC1, y = PC2, color = cluster_df$Cluster)) +
-  geom_point() +
-  stat_ellipse(level = 0.95) +  # Add ellipses around clusters (95% confidence intervals)
-  labs(title = "K-means Clustering",
-       x = "Principal Component 1", y = "Principal Component 2") +
-  theme_minimal()
-```
-
-
-```{r}
-# Create boxplots for a feature (e.g., engine displacement 'displ') by cluster
-ggplot(cluster_df, aes(x = Cluster, y = displ, fill = Cluster)) +
-  geom_boxplot() +
-  labs(title = "Engine Displacement by Cluster", x = "Cluster", y = "Engine Displacement")
-# Create boxplots for a feature (e.g., engine displacement 'displ') by cluster
-ggplot(cluster_df, aes(x = Cluster, y = co2, fill = Cluster)) +
-  geom_boxplot() +
-  labs(title = "Engine Displacement by Cluster", x = "Cluster", y = "Engine Displacement")
-```
-
-
-```{r}
-# Calculate the mean of each numeric column grouped by cluster
-cluster_means <- cluster_df %>%
-  group_by(Cluster) %>%
-  summarise(across(where(is.numeric), mean, na.rm = TRUE))
-
-# View the mean of all columns by cluster
-xkabledplyhead(cluster_means, 4)
-```
-
-
-```{r}
-# ANOVA for 'displ' across clusters
-anova_displ <- aov(displ ~ Cluster, data = cluster_df)
-summary(anova_displ)
-
-# ANOVA for 'co2' across clusters
-anova_co2 <- aov(co2 ~ Cluster, data = cluster_df)
-summary(anova_co2)
-```
-
-
