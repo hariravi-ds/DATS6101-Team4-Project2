@@ -1818,14 +1818,6 @@ vehicle sustainability based on emissions. The goal is to offer insights
 into the variables that critically impact CO2 emissions in modern
 vehicles and provide perspectives that could support environmental
 policies.</p>
-<pre class="r"><code>#Load necessary libraries
-library(devtools)
-library(dplyr)
-library(ezids)
-library(caret)
-library(leaps)
-library(car)
-library(tidyverse)</code></pre>
 </div>
 <div id="introduction" class="section level3">
 <h3><strong>Introduction</strong></h3>
@@ -1858,6 +1850,14 @@ classification tree is developed to predict a vehicle’s sustainability.
 Through our findings, we hope to provide actionable insights for
 policymakers and automotive manufacturers in their efforts to mitigate
 environmental impacts.</p>
+<pre class="r"><code>#Load necessary libraries
+library(devtools)
+library(dplyr)
+library(ezids)
+library(caret)
+library(leaps)
+library(car)
+library(tidyverse)</code></pre>
 <pre class="r"><code>#load the dataset
 df &lt;- read.csv(&#39;Fuel Economy Data.csv&#39;)</code></pre>
 <pre class="r"><code>summary(df)</code></pre>

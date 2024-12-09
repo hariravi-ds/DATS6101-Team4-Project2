@@ -30,6 +30,14 @@ options(scientific=T, digits = 3)
 
 With growing concerns about environmental sustainability and the impact of greenhouse gases, this project investigates factors influencing carbon dioxide (CO2) emissions from vehicles, focusing on models released between 2020 and 2024. Using a dataset comprising 40,000 vehicle records with 85 detailed attributes, sourced from the U.S. Department of Energy (DOE), the relationships between vehicle characteristics and the amount of CO2 emitted from a vehicle's tailpipe are analyzed. Additionally, three key SMART questions were addressed to provide deeper insights into the data. The study addresses three objectives: constructing a linear regression model to quantify the impact of vehicle features on CO2 emissions, clustering vehicles based on their attributes to identify distinct groups and their defining characteristics, and implementing a classification tree to predict vehicle sustainability based on emissions. The goal is to offer insights into the variables that critically impact CO2 emissions in modern vehicles and provide perspectives that could support environmental policies.
 
+### **Introduction**
+
+Transportation accounts for a significant share of global greenhouse gas emissions, with vehicles contributing to a substantial share of carbon dioxide (CO2) emissions throughout the world. According to the U.S. Environmental Protection Agency (EPA), the vehicle fuel economy has reached a record high, and the greenhouse gas emissions dropped to record low in 2023. Advancement in automotive technology and stricter regulations led to stronger motivations for improvement in fuel efficiency and reduction in emissions, resulting in average miles per gallon (MPG) increase from 13.1 to 27.1 since 1975 (EPA, 2021).
+
+This project explores the relationship between vehicle characteristics and CO₂ emissions using fuel economy data from the U.S. Department of Energy. The dataset includes vehicle testing results conducted by the EPA or vehicle manufacturers under EPA oversight (U.S. Department of Energy, 2024). For this study, we focus exclusively on vehicles from 2020 to 2024, analyzing attributes such as engine displacement, drivetrain type, and fuel type, with tailpipe CO₂ emissions (in grams per mile) serving as the dependent variable. Electric vehicles (EVs) are excluded due to their fundamentally different emissions profile.
+
+Through this analysis, we aim to provide insight on features that contribute to CO2 emissions and identify characteristics of sustainable vehicles. First, linear regression is applied to understand the influence of vehicle features on emissions. Next, clustering techniques reveal groups of vehicles with shared characteristics, enabling insights into emission patterns across different vehicle types. Finally, a classification tree is developed to predict a vehicle’s sustainability. Through our findings, we hope to provide actionable insights for policymakers and automotive manufacturers in their efforts to mitigate environmental impacts.
+
 ```{r libraries}
 #Load necessary libraries
 library(devtools)
@@ -40,15 +48,6 @@ library(leaps)
 library(car)
 library(tidyverse)
 ```
-
-### **Introduction**
-
-Transportation accounts for a significant share of global greenhouse gas emissions, with vehicles contributing to a substantial share of carbon dioxide (CO2) emissions throughout the world. According to the U.S. Environmental Protection Agency (EPA), the vehicle fuel economy has reached a record high, and the greenhouse gas emissions dropped to record low in 2023. Advancement in automotive technology and stricter regulations led to stronger motivations for improvement in fuel efficiency and reduction in emissions, resulting in average miles per gallon (MPG) increase from 13.1 to 27.1 since 1975 (EPA, 2021).
-
-This project explores the relationship between vehicle characteristics and CO₂ emissions using fuel economy data from the U.S. Department of Energy. The dataset includes vehicle testing results conducted by the EPA or vehicle manufacturers under EPA oversight (U.S. Department of Energy, 2024). For this study, we focus exclusively on vehicles from 2020 to 2024, analyzing attributes such as engine displacement, drivetrain type, and fuel type, with tailpipe CO₂ emissions (in grams per mile) serving as the dependent variable. Electric vehicles (EVs) are excluded due to their fundamentally different emissions profile.
-
-Through this analysis, we aim to provide insight on features that contribute to CO2 emissions and identify characteristics of sustainable vehicles. First, linear regression is applied to understand the influence of vehicle features on emissions. Next, clustering techniques reveal groups of vehicles with shared characteristics, enabling insights into emission patterns across different vehicle types. Finally, a classification tree is developed to predict a vehicle’s sustainability. Through our findings, we hope to provide actionable insights for policymakers and automotive manufacturers in their efforts to mitigate environmental impacts.
-
 ```{r load_dataset}
 #load the dataset
 df <- read.csv('Fuel Economy Data.csv')

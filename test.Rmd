@@ -229,7 +229,6 @@ text(tree_model, use.n=TRUE, all=TRUE, cex=.8)
 ```
 ```{r}
 # Load necessary libraries
-library(rpart)
 library(caret)
 
 # Split the data into training and testing sets
@@ -283,7 +282,6 @@ cat("RMSE for lowest 10%:", rmse_lowest_10, "\n")
 cat("R² for lowest 10%:", r_squared_lowest_10, "\n")
 ```
 ```{r}
-library(caret)
 feature_importance <- varImp(tree_fit)
 print(feature_importance)
 ```
