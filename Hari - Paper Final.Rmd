@@ -222,7 +222,7 @@ linear_df <- final_data %>%select(-c(trany, eng_dscr, VClass))
 linear_df <- linear_df %>%select(-c(comb08,UCity,UHighway,highway08, city08, barrels08))
 ```
 
-### **Feature Engineering**
+### **Feature Selection**
 
 In this study, an exhaustive method was employed in conjunction with linear regression to identify the most important features. The exhaustive method systematically evaluates every possible combination of independent variables to determine the optimal set for predicting the dependent variable. By analyzing all potential variable combinations within the dataset, this approach ensures that the best-fit model is selected. While computationally intensive, this method is particularly effective when working with a relatively small number of variables, providing robust feature selection for the regression analysis.
 
