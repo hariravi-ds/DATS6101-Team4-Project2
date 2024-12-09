@@ -261,6 +261,16 @@ print(paste("Test R-squared:", round(r_squared, 2)))
 
 ```
 
+```{r viz}
+ggplot(data.frame(Actual = test_data$co2, Predicted = test_predictions), aes(x = Actual, y = Predicted)) +
+  geom_point(alpha = 0.6, color = "blue") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Predicted vs. Actual CO2 Emissions", x = "Actual CO2", y = "Predicted CO2") +
+  theme_minimal()
+
+
+```
+
 
 
 ### **Research Question 2**
