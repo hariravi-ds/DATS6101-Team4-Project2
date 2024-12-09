@@ -52,7 +52,7 @@ library(caret)
 ```
 ```{r load_dataset}
 #load the dataset
-df <- read.csv('/Users/hariprasannaa/Downloads/vehicles.csv')
+df <- read.csv('Fuel Economy Data.csv')
 ```
 
 ### **Data Description**
@@ -87,7 +87,7 @@ summary(df)
 
 ### **Data Cleaning**
 
-The primary objective of this study was to analyze CO2 emissions from diesel and petrol vehicles, particularly in the context of the growing popularity of electric vehicles (EVs) around 2018. To align with this focus, the dataset was initially filtered to include only records from 2018 onwards. Following this, columns related to electric vehicles, which do not contribute to direct CO2 emissions, were removed to ensure the analysis remained relevant to the study's objectives.
+The primary objective of this study was to analyze CO2 emissions from diesel and petrol vehicles, particularly in the context of the growing popularity of electric vehicles (EVs) around 2020. To align with this focus, the dataset was initially filtered to include only records from 2020 onwards. Following this, columns related to electric vehicles, which do not contribute to direct CO2 emissions, were removed to ensure the analysis remained relevant to the study's objectives.
 
 During the data cleaning process, null values were identified in several categorical columns. To handle these missing values while preserving the overall data distribution, mode imputation was applied. Columns with only one unique value were also removed, as they offered no useful variability for analysis.
 
@@ -405,11 +405,11 @@ By examining these clusters, we can draw several conclusions about sustainabilit
 
 ### **Research Question 3**
 
-How accurately does the regression tree model predict the lowest 10% of feScore values in the dataset, and which features contribute most significantly to improving prediction accuracy for these instances between 2018 and 2025?
+How accurately does the regression tree model predict the lowest 10% of feScore values in the dataset, and which features contribute most significantly to improving prediction accuracy for these instances between 2020 and 2024?
 
 #### **Method**
 
-To evaluate the predictive accuracy of the regression tree model in identifying the lowest 10% of feScore values in the dataset between 2018 and 2025, a structured approach was employed. The dataset was divided into training (70%) and testing (30%) sets using stratified random sampling to ensure balanced representation of the co2 variable. A regression tree model was then developed using the rpart package, with co2 as the dependent variable and all other features as independent variables. The anova method was used to minimize the variance of co2 within terminal nodes, thereby improving the precision of predictions. The tree structure was visualized to interpret splits and decision rules, with enhanced visualizations created using rpart.plot for clarity. Variable importance was assessed using the varImp function, and the top 10 most influential predictors were identified and visualized using a bar chart created in ggplot2.
+To evaluate the predictive accuracy of the regression tree model in identifying the lowest 10% of feScore values in the dataset between 2020 and 2024, a structured approach was employed. The dataset was divided into training (70%) and testing (30%) sets using stratified random sampling to ensure balanced representation of the co2 variable. A regression tree model was then developed using the rpart package, with co2 as the dependent variable and all other features as independent variables. The anova method was used to minimize the variance of co2 within terminal nodes, thereby improving the precision of predictions. The tree structure was visualized to interpret splits and decision rules, with enhanced visualizations created using rpart.plot for clarity. Variable importance was assessed using the varImp function, and the top 10 most influential predictors were identified and visualized using a bar chart created in ggplot2.
 
 #### **Analysis**
 
