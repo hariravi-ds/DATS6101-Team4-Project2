@@ -3563,7 +3563,7 @@ unique values), while label encoding was used for those with high
 cardinality (more than 10 unique values). These steps ensured that the
 dataset was structured, relevant, and ready for a focused analysis on
 CO2 emissions from diesel and petrol vehicles.</p>
-<pre class="r"><code>#defining the unwanted columns (columns realted to fuel type 2 and ev)
+<pre class="r"><code>#defining the unwanted columns (columns related to electric vehicles)
 unwantedlist &lt;- c(
   &quot;barrelsA08&quot;,
   &quot;cityA08&quot;,
@@ -3619,7 +3619,7 @@ unwantedlist &lt;- c(
 )
 cleaned_df &lt;- df %&gt;% select(-all_of(unwantedlist))
 
-#considering only from year 2013
+#considering only from year 2020
 cleaned_df &lt;- cleaned_df %&gt;%
   filter(year %in% (2020:2024))
 
@@ -3729,7 +3729,6 @@ print(head(final_data))</code></pre>
 linear_df &lt;- final_data %&gt;%select(-c(trany, eng_dscr, VClass))
 #remove any mpg because co2 is directly related to mpg (which is tailpipe CO2 in grams/mile)
 #also remove barrels08 as it is basically proportional to co2
-#linear_df &lt;- linear_df %&gt;%select(-c(comb08, UCity, UHighway, highway08, city08, barrels08))
 linear_df &lt;- linear_df %&gt;%select(-c(comb08,UCity,UHighway,highway08, city08, barrels08))</code></pre>
 </div>
 <div id="feature-selection" class="section level3">
@@ -3797,7 +3796,6 @@ indicating a high degree of multicollinearity.</p>
 <pre class="r"><code>#remove the highest VIF
 lm_data &lt;- selected_data %&gt;%
   select(-youSaveSpend)
-#lm_data &lt;- lm_data %&gt;%select(-cylinders)
 lm_data &lt;- lm_data %&gt;%
   select(-fuelCost08)
 

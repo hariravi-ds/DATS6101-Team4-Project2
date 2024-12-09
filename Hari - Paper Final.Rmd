@@ -87,7 +87,11 @@ summary(df)
 
 ### **Data Cleaning**
 
+<<<<<<< HEAD
 The primary objective of this study was to analyze CO2 emissions from diesel and petrol vehicles, particularly in the context of the growing popularity of electric vehicles (EVs) around 2020. To align with this focus, the dataset was initially filtered to include only records from 2020 onwards. Following this, columns related to electric vehicles, which do not contribute to direct CO2 emissions, were removed to ensure the analysis remained relevant to the study's objectives.
+=======
+The primary objective of this study was to analyze CO2 emissions from diesel and petrol vehicles, particularly in the context of the growing popularity of electric vehicles (EVs) around 2018. To align with this focus, the dataset was initially filtered to include only records from 2020 onwards. Following this, columns related to electric vehicles, which do not contribute to direct CO2 emissions, were removed to ensure the analysis remained relevant to the study's objectives.
+>>>>>>> 79055f2c5854bb27f8d70a7bf8591f6750907571
 
 During the data cleaning process, null values were identified in several categorical columns. To handle these missing values while preserving the overall data distribution, mode imputation was applied. Columns with only one unique value were also removed, as they offered no useful variability for analysis.
 
@@ -95,7 +99,7 @@ To prepare the data for analysis, categorical variables were converted into nume
 
 ```{r remove_ev}
 
-#defining the unwanted columns (columns realted to fuel type 2 and ev)
+#defining the unwanted columns (columns related to electric vehicles)
 unwantedlist <- c(
   "barrelsA08",
   "cityA08",
@@ -151,7 +155,7 @@ unwantedlist <- c(
 )
 cleaned_df <- df %>% select(-all_of(unwantedlist))
 
-#considering only from year 2013
+#considering only from year 2020
 cleaned_df <- cleaned_df %>%
   filter(year %in% (2020:2024))
 
@@ -160,12 +164,15 @@ cleaned_df <- cleaned_df[!is.na(cleaned_df$cylinders) & cleaned_df$cylinders != 
 ```
 
 The number of missing values per column is shown below:
+
 ```{r check_missing}
 #check the number of missing values for each column
 missing_values <- colSums(is.na(cleaned_df))
 missing_values
 ```
+
 The number of 0 values per column is shown below:
+
 ```{r zero_count}
 #check the number of value 0 for each column
 zero_count_per_column <- cleaned_df %>%
@@ -218,7 +225,6 @@ print(head(final_data))
 linear_df <- final_data %>%select(-c(trany, eng_dscr, VClass))
 #remove any mpg because co2 is directly related to mpg (which is tailpipe CO2 in grams/mile)
 #also remove barrels08 as it is basically proportional to co2
-#linear_df <- linear_df %>%select(-c(comb08, UCity, UHighway, highway08, city08, barrels08))
 linear_df <- linear_df %>%select(-c(comb08,UCity,UHighway,highway08, city08, barrels08))
 ```
 
@@ -271,7 +277,6 @@ Specifically, the variables fuelCost08 and youSaveSpend were removed due to thei
 #remove the highest VIF
 lm_data <- selected_data %>%
   select(-youSaveSpend)
-#lm_data <- lm_data %>%select(-cylinders)
 lm_data <- lm_data %>%
   select(-fuelCost08)
 
@@ -467,6 +472,7 @@ rmse_lowest_10 <- sqrt(mse_lowest_10)
 r_squared_lowest_10 <- 1 - sum((lowest_10$co2 - lowest_10_predictions)^2) /
                              sum((lowest_10$co2 - mean(lowest_10$co2))^2)
 ```
+
 When comparing these overall performance metrics to those for the lowest 10% of co2 values, where the RMSE is `r rmse_lowest_10` and is `r r_squared_lowest_10`, it is evident that the model performs significantly better across the full dataset than it does for this subset of extreme values. The negative for the lowest 10% highlights that the model struggles to capture patterns in these low-emission instances, underscoring the need for additional refinement or alternative modeling approaches to improve accuracy for critical outliers.
 
 Feature importance was calculated to identify the predictors contributing most significantly to the regression tree model. The importance scores were extracted and converted into a data frame, preserving the feature names for clarity. The top 10 features, ranked by their importance scores, were selected and visualized using a bar chart created with ggplot2.
