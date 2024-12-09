@@ -1,0 +1,506 @@
+---
+title: "CO2 Emissions in Modern Vehicles"
+author: "Hari Prasannaa Thangavel Ravi, Jin Hyuk Son, Pranjal S. Wakpaijan"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+---
+
+```{r init, include=FALSE}
+# The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
+# Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
+library(ezids)
+ 
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+### **Abstract**
+
+With growing concerns about environmental sustainability and the impact of greenhouse gases, this project investigates factors influencing carbon dioxide (CO2) emissions from vehicles, focusing on models released between 2020 and 2024. Using a public dataset comprising 40,000 vehicle records with 85 detailed attributes, sourced from the U.S. Department of Energy (DOE), the relationships between vehicle characteristics and the amount of CO2 emitted from a vehicle's tailpipe are analyzed. Additionally, three key SMART questions were addressed to provide deeper insights into the data. The study addresses three objectives: constructing a linear regression model to quantify the impact of vehicle features on CO2 emissions, clustering vehicles based on their attributes to identify distinct groups and their defining characteristics, and implementing a classification tree to predict vehicle sustainability based on emissions. The goal is to offer insights into the variables that critically impact CO2 emissions in modern vehicles and provide perspectives that could support environmental policies.
+
+### **Introduction**
+
+Transportation accounts for a significant share of global greenhouse gas emissions, with vehicles contributing to a substantial share of carbon dioxide (CO2) emissions throughout the world. According to the U.S. Environmental Protection Agency (EPA), the vehicle fuel economy has reached a record high, and the greenhouse gas emissions dropped to record low in 2023. Advancement in automotive technology and stricter regulations led to stronger motivations for improvement in fuel efficiency and reduction in emissions, resulting in average miles per gallon (MPG) increase from 13.1 to 27.1 since 1975 (EPA, 2021).
+
+This project explores the relationship between vehicle characteristics and CO₂ emissions using fuel economy data from the U.S. Department of Energy. The dataset includes vehicle testing results conducted by the EPA or vehicle manufacturers under EPA oversight (U.S. Department of Energy, 2024). For this study, we focus exclusively on vehicles from 2020 to 2024, analyzing attributes such as engine displacement, drivetrain type, and fuel type, with tailpipe CO₂ emissions (in grams per mile) serving as the dependent variable. Electric vehicles (EVs) are excluded due to their fundamentally different emissions profile.
+
+Through this analysis, we aim to provide insight on features that contribute to CO2 emissions and identify characteristics of sustainable vehicles. First, linear regression is applied to understand the influence of vehicle features on emissions. Next, clustering techniques reveal groups of vehicles with shared characteristics, enabling insights into emission patterns across different vehicle types. Finally, a classification tree is developed to predict a vehicle’s sustainability. Through our findings, we hope to provide actionable insights for policymakers and automotive manufacturers in their efforts to mitigate environmental impacts.
+
+```{r libraries}
+#Load necessary libraries
+library(devtools)
+library(dplyr)
+library(ezids)
+library(caret)
+library(leaps)
+library(car)
+library(tidyverse)
+library(ggplot2)
+library(caret)
+```
+```{r load_dataset}
+#load the dataset
+df <- read.csv('/Users/hariprasannaa/Downloads/vehicles.csv')
+```
+
+### **Data Description**
+
+The dataset utilized in this study comprises detailed information on 40,000 vehicles, encompassing 85 attributes that provide insights into vehicle characteristics, fuel consumption, emissions, and performance. Key features of the dataset include:
+
+-   Vehicle Specifications: Details such as make, model, year, engine displacement, number of cylinders, and drive axle type. It also includes               classifications like vehicle size and special features such as superchargers or turbochargers.
+
+-   Fuel and Energy: Information on primary and secondary fuel types, along with attributes specific to alternative fuel or advanced technology              vehicles. Data on fuel efficiency is captured for city, highway, and combined driving scenarios.
+
+-   Energy and Emissions: Comprehensive metrics including annual petroleum consumption, electricity consumption (for electric and hybrid vehicles), and      hydrogen efficiency. Tailpipe CO2 emissions and EPA greenhouse gas scores are provided for both primary and secondary fuels.
+
+-   Charging Details: For electric vehicles, the dataset includes attributes related to charging times at different voltages and descriptions of the         chargers.
+
+-   Cost Metrics: Fuel costs for primary and secondary fuels are included, along with a five-year cost comparison against the average vehicle.
+
+-   Passenger and Cargo Space: Attributes detailing luggage and passenger volumes for different vehicle configurations.
+
+-   Metadata: Unique record identifiers, creation, and modification dates to track data history.
+
+This dataset serves as a robust foundation for analyzing the relationships between vehicle features, fuel economy, and emissions, enabling insights critical for addressing modern environmental challenges.
+
+Displaying the first few observations:
+```{r head}
+xkabledplyhead(df, 5, title="CO2 Emissions in Modern Vehicles")
+```
+
+Displaying the summary of the dataset
+```{r data_summary}
+summary(df)
+```
+
+### **Data Cleaning**
+
+The primary objective of this study was to analyze CO2 emissions from diesel and petrol vehicles, particularly in the context of the growing popularity of electric vehicles (EVs) around 2018. To align with this focus, the dataset was initially filtered to include only records from 2018 onwards. Following this, columns related to electric vehicles, which do not contribute to direct CO2 emissions, were removed to ensure the analysis remained relevant to the study's objectives.
+
+During the data cleaning process, null values were identified in several categorical columns. To handle these missing values while preserving the overall data distribution, mode imputation was applied. Columns with only one unique value were also removed, as they offered no useful variability for analysis.
+
+To prepare the data for analysis, categorical variables were converted into numerical formats based on their cardinality. One-hot encoding was applied to variables with low cardinality (fewer than 10 unique values), while label encoding was used for those with high cardinality (more than 10 unique values). These steps ensured that the dataset was structured, relevant, and ready for a focused analysis on CO2 emissions from diesel and petrol vehicles.
+
+```{r remove_ev}
+
+#defining the unwanted columns (columns realted to fuel type 2 and ev)
+unwantedlist <- c(
+  "barrelsA08",
+  "cityA08",
+  "cityA08U",
+  "co2A",
+  "co2TailpipeAGpm",
+  "combA08",
+  "combA08U",
+  "fuelCostA08",
+  "fuelType2",
+  "highwayA08",
+  "highwayA08U",
+  "rangeA",
+  "rangeCityA",
+  "rangeHwyA",
+  "UCityA",
+  "UHighwayA",
+  "charge120",
+  "charge240",
+  "sCharger",
+  "tCharger",
+  "c240Dscr",
+  "charge240b",
+  "c240bDscr",
+  "phevHwy",
+  "phevCity",
+  "phevComb",
+  "modifiedOn",
+  "cityCD",
+  "combinedCD",
+  "highwayCD",
+  "phevBlended",
+  "cityE",
+  "combE",
+  "combinedUF",
+  "evMotor",
+  "highwayE",
+  "highwayUF",
+  "cityUF",
+  "rangeCity",
+  "rangeHwy",
+  "range",
+  "hlv",
+  "hpv",
+  "pv2",
+  "pv4",
+  "lv2",
+  "lv4",
+  "comb08U",
+  "city08U",
+  "highway08U",
+  "engId"
+)
+cleaned_df <- df %>% select(-all_of(unwantedlist))
+
+#considering only from year 2013
+cleaned_df <- cleaned_df %>%
+  filter(year %in% (2020:2024))
+
+#removing ev vehicles
+cleaned_df <- cleaned_df[!is.na(cleaned_df$cylinders) & cleaned_df$cylinders != "Electricity",]
+```
+
+The number of missing values per column is shown below:
+```{r check_missing}
+#check the number of missing values for each column
+missing_values <- colSums(is.na(cleaned_df))
+missing_values
+```
+The number of 0 values per column is shown below:
+```{r zero_count}
+#check the number of value 0 for each column
+zero_count_per_column <- cleaned_df %>%
+  summarise(across(everything(), ~sum(. == 0, na.rm = TRUE)))
+
+zero_count_per_column
+```
+
+```{r remove_columns}
+#remove columns that are for car identification
+cleaned_df <- cleaned_df %>%select(-c(createdOn,mfrCode,baseModel,model,make,id,mpgData,year))
+#remove redundant columns and ghg score and fescore, which would be another dependent variable
+cleaned_df <- cleaned_df %>%select(-c(co2TailpipeGpm, fuelType, feScore, ghgScore, ghgScoreA,fuelType1))
+#remove empty column
+cleaned_df <- cleaned_df %>%select(-trans_dscr,atvType)
+```
+
+```{r encode_cat_vars}
+#Identify categorical columns and their unique value counts
+categorical_columns <- sapply(cleaned_df, function(col) is.character(col) || is.factor(col))
+unique_values <- sapply(cleaned_df[, categorical_columns], function(col) length(unique(col)))
+
+#Separate columns for one-hot and label encoding
+one_hot_columns <- names(unique_values[unique_values <= 10]) # Threshold for one-hot encoding
+label_columns <- names(unique_values[unique_values > 10])
+
+#Applying One-Hot Encoding
+if (length(one_hot_columns) > 0) {
+  one_hot_encoded <- dummyVars(~ ., data = cleaned_df[one_hot_columns], fullRank = TRUE)
+  one_hot_df <- data.frame(predict(one_hot_encoded, newdata = cleaned_df))
+}
+
+#Applying Label Encoding
+for (column in label_columns) {
+  cleaned_df[[column]] <- as.numeric(as.factor(cleaned_df[[column]]))
+}
+
+#Combining one-hot encoded and remaining data
+final_data <- bind_cols(cleaned_df %>% select(-one_hot_columns), one_hot_df)
+```
+
+Displaying the first few observations of the preprocessed and encoded dataset which provides an overview of the transformed data structure, showcasing how categorical variables were encoded and how missing values were addressed.
+```{r}
+#View the first few rows of the encoded dataset
+print(head(final_data))
+```
+
+```{r remove_add_columns}
+#removing categorical variables with two many categories - avoid overfitting
+linear_df <- final_data %>%select(-c(trany, eng_dscr, VClass))
+#remove any mpg because co2 is directly related to mpg (which is tailpipe CO2 in grams/mile)
+#also remove barrels08 as it is basically proportional to co2
+#linear_df <- linear_df %>%select(-c(comb08, UCity, UHighway, highway08, city08, barrels08))
+linear_df <- linear_df %>%select(-c(comb08,UCity,UHighway,highway08, city08, barrels08))
+```
+
+### **Feature Engineering**
+
+In this study, an exhaustive method was employed in conjunction with linear regression to identify the most important features. The exhaustive method systematically evaluates every possible combination of independent variables to determine the optimal set for predicting the dependent variable. By analyzing all potential variable combinations within the dataset, this approach ensures that the best-fit model is selected. While computationally intensive, this method is particularly effective when working with a relatively small number of variables, providing robust feature selection for the regression analysis.
+
+Subsequently, adjusted R-squared was utilized to determine the best number of features, selecting the model configuration where the adjusted R-squared value reached its maximum, ensuring an optimal balance between explanatory power and model complexity.
+
+```{r regsubset}
+library(leaps)
+regfit_full <- regsubsets(co2 ~ ., data = linear_df, nvmax = 35)
+reg_summary <- summary(regfit_full)
+```
+```{r best_size}
+# Find the model size using adjusted r squared
+best_model_size <- which.max(reg_summary$adjr2)
+```
+
+Using this approach, the optimal model size was determined to include `r best_model_size` features, providing the best balance between model complexity and predictive accuracy.
+
+```{r best_cols}
+#Column names of the best model size
+selected_vars <- names(which(reg_summary$which[best_model_size, ])) %>%
+  setdiff("(Intercept)")  # Remove intercept
+
+#filter for the column names above
+selected_data <- final_data %>%
+  select(all_of(selected_vars)) %>%
+  mutate(co2 = final_data$co2) #add our dependent variable
+```
+
+Variable Inflation Factor (VIF) analysis was then conducted to assess multicollinearity among the selected features. Variables with the highest VIF values were iteratively removed, one at a time, to ensure a more robust and interpretable model.
+
+```{r check_vif}
+#We are going to run VIF to check multicollinearity
+
+vif_model <- lm(co2 ~ ., data = selected_data)
+
+vif_values <- vif(vif_model)
+
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+
+Specifically, the variables fuelCost08 and youSaveSpend were removed due to their Variable Inflation Factor (VIF) values exceeding 10, indicating a high degree of multicollinearity.
+
+```{r remove_high_vif}
+#remove the highest VIF
+lm_data <- selected_data %>%
+  select(-youSaveSpend)
+#lm_data <- lm_data %>%select(-cylinders)
+lm_data <- lm_data %>%
+  select(-fuelCost08)
+
+#run vif again
+vif_model <- lm(co2 ~ ., data = lm_data)
+vif_values <- vif(vif_model)
+vif_df <- as.data.frame(vif_values) %>%
+  rownames_to_column(var = "Variable")
+print(vif_df)
+```
+
+```{r}
+lm_model <- lm(co2 ~ ., data = lm_data)
+summary(lm_model)
+```
+
+### **Research Question 2**
+
+How can clustering vehicle attributes reveal distinct groups of vehicles, and which group exhibits the lowest CO2 emissions, making them the most sustainable, among models from 2020 to 2024?
+
+#### **Method**
+
+In this analysis, we have clustered vehicles based on important features identified in earlier finding. To do so, we have used K-means clustering method. K-means clustering is an unsupervised machine learning method that assigns data points to one of the clusters based on their distance from the center of each cluster. The algorithm initially assigns centroid randomly. It then recalculates the centroids based on the mean of the assigned data points and iterate this process until the centroids no longer change significantly.
+
+To choose the number of clusters, we have applied the Elbow Method. The method is described as follows: - *Calculate the Within-Cluster-Sum of Squared Errors (WSS) for different values of k, and choose the k for which WSS becomes first starts to diminish. In the plot of WSS-versus-k, this is visible as an elbow.* (Mahendru, 2019)
+
+```{r elbow_method}
+library(factoextra)
+cluster_df <- lm_data
+
+# Elbow method
+fviz_nbclust(cluster_df, kmeans, method = "wss") +
+    geom_vline(xintercept = 4, linetype = 2)+
+  labs(subtitle = "Elbow method")
+```
+
+The point at which the WSS curve began to flatten suggested that 4 clusters would be the most appropriate number, as adding more clusters beyond this point would not yield a significant improvement.
+
+#### **Analysis**
+
+We applied K-means clustering with an optimal number of 4 clusters and examined how key vehicle features relate to CO₂ emissions across these clusters. To aid in visualizing the clustering results, we employed Principal Component Analysis (PCA) to reduce the dimensionality of the data, allowing us to plot the clusters in a two-dimensional space. The resulting scatter plot clearly showed the separation of vehicles into four distinct clusters.
+
+```{r}
+# Compute k-means with k = 4
+set.seed(123)
+#scaling
+scaled_df <- scale(cluster_df)
+km_res <- kmeans(scaled_df, 4, nstart = 25)
+# Add cluster assignments to the original data for visualization
+cluster_df$Cluster <- as.factor(km_res$cluster)
+
+# PCA for dimensionality reduction
+pca_result <- prcomp(scaled_df)
+pca_df <- data.frame(pca_result$x)
+
+# Plotting with ggplot2
+ggplot(pca_df, aes(x = PC1, y = PC2, color = cluster_df$Cluster)) +
+  geom_point() +
+  stat_ellipse(level = 0.95) +  # Add ellipses around clusters (95% confidence intervals)
+  labs(title = "K-means Clustering",
+       x = "Principal Component 1", y = "Principal Component 2", color = "Clusters") +
+  theme_minimal()
+```
+
+To better understand the characteristics that define each cluster, we examined the distribution of engine displacement across the four groups. The boxplot revealed that Cluster 2 consistently exhibited higher engine displacement compared to the other clusters. To statistically validate this observation, we conducted an ANOVA test, which returned a low p-value, indicating a significant difference in engine displacement between the clusters.
+
+```{r eng_dspl_cluster}
+# Create boxplots for engine displacement
+ggplot(cluster_df, aes(x = Cluster, y = displ, fill = Cluster)) +
+  geom_boxplot() +
+  labs(title = "Engine Displacement by Cluster", x = "Cluster", y = "Engine Displacement")
+# ANOVA for 'displ' across clusters
+anova_displ <- aov(displ ~ Cluster, data = cluster_df)
+summary(anova_displ)
+```
+
+Similarly, we investigated how CO2 emissions were distributed among the clusters. A similar pattern emerged, with Cluster 2 again showing the highest CO2 emissions, followed by Cluster 1, Cluster 3, and Cluster 4 in descending order. To further confirm this finding, we performed another ANOVA test, which also yielded a significant result, suggesting that the differences in CO2 emissions across clusters were meaningful.
+
+```{r eng_dspl}
+# Create boxplots for co2 by cluster
+ggplot(cluster_df, aes(x = Cluster, y = co2, fill = Cluster)) +
+  geom_boxplot() +
+  labs(title = "CO2 Emissions by Cluster", x = "Cluster", y = "CO2 Emissions")
+# ANOVA for 'displ' across clusters
+anova_co2 <- aov(displ ~ co2, data = cluster_df)
+summary(anova_co2)
+```
+
+We can observe a similar pattern to distribution of engine displacement. Cluster 2 had the highest CO2 with Cluster 1, Cluster 3, and Cluster 4 following in order. ANOVA test again shows that there is a significant difference between average CO2 emissions across the clusters.
+
+Based on the mean values for each feature across the 4 clusters, we can describe the defining characteristics of each group as follows:
+
+```{r}
+# Calculate the mean of each numeric column grouped by cluster
+cluster_means <- cluster_df %>%
+  group_by(Cluster) %>%
+  summarise(across(where(is.numeric), mean, na.rm = TRUE))
+
+
+# View the mean of all columns by cluster
+xkabledplyhead(cluster_means, 4)
+```
+
+-   Cluster 1
+
+    -   Moderate to high numbers for cylinder (6.27) and engine displacement (3.77).
+
+    -   Majority of the vehicles are rear-wheel drive.
+
+-   Cluster 2
+
+    -   High numbers for cylinder (9.48) and engine displacement (5.35).
+
+    -   Either all-wheel drive or rear-wheel drive vehicles.
+
+    -   Mostly gas guzzlers, indicating very low fuel efficiency. Likely to be larger vehicles such as trucks.
+
+-   Cluster 3
+
+    -   Moderate number for cylinders (5.15) and low number for engine displacement (2.70).
+
+    -   Mostly all-wheel drive vehicles and characterized by start-stop systems.
+
+-   Cluster 4
+
+    -   Low numbers for cylinders (4.18) and engine displacement (2.15).
+
+    -   Mostly front-wheel drive vehicles, likely to be compact cars.
+
+By examining these clusters, we can draw several conclusions about sustainability and emissions. Cluster 2, with its larger engines and higher emissions, represents the least sustainable group, while Clusters 3 and 4, with their smaller engines and lower emissions, reflect more fuel-efficient, environmentally friendly vehicles. Cluster 1 falls somewhere in between, with moderate emissions and a mix of vehicle types. This analysis helps identify which vehicle features contribute most to CO₂ emissions and which types of vehicles are more sustainable.
+
+### **Research Question 3**
+
+How accurately does the regression tree model predict the lowest 10% of feScore values in the dataset, and which features contribute most significantly to improving prediction accuracy for these instances between 2018 and 2025?
+
+#### **Method**
+
+To evaluate the predictive accuracy of the regression tree model in identifying the lowest 10% of feScore values in the dataset between 2018 and 2025, a structured approach was employed. The dataset was divided into training (70%) and testing (30%) sets using stratified random sampling to ensure balanced representation of the co2 variable. A regression tree model was then developed using the rpart package, with co2 as the dependent variable and all other features as independent variables. The anova method was used to minimize the variance of co2 within terminal nodes, thereby improving the precision of predictions. The tree structure was visualized to interpret splits and decision rules, with enhanced visualizations created using rpart.plot for clarity. Variable importance was assessed using the varImp function, and the top 10 most influential predictors were identified and visualized using a bar chart created in ggplot2.
+
+#### **Analysis**
+
+A regression tree model was constructed using the rpart package, with co2 as the dependent variable and all other features as predictors. The anova method was used to minimize variance within terminal nodes, ensuring precise predictions. The resulting tree structure, visualized with decision splits, highlights the most significant predictors of CO2 emissions and provides insights into the hierarchical relationships between variables, aiding interpretation and model refinement.
+
+```{r}
+library(rpart)
+#Building a regression tree
+tree_model <- rpart(co2 ~ ., data = lm_data, method = "anova")
+```
+
+The dataset was split into training (70%) and testing (30%) sets to build and evaluate the regression tree model. Using the training set, a regression tree was trained with co2 as the dependent variable, leveraging the rpart package and the anova method to minimize variance in terminal nodes. The model's structure was visualized to interpret decision rules, with enhanced visualizations using rpart.plot for clarity.
+
+Predictions were generated on the test set, and model performance was assessed using Root Mean Squared Error and R-squared. These metrics provided quantitative insights into the model's predictive accuracy and its ability to explain the variance in CO2 emissions. The results demonstrate the model's effectiveness in capturing patterns in the data and its potential for identifying key contributors to CO2 emissions.
+ 
+```{r}
+# Split the data into training and testing sets
+set.seed(123) # For reproducibility
+trainIndex <- createDataPartition(lm_data$co2, p = 0.7, list = FALSE)
+trainData <- lm_data[trainIndex, ]
+testData <- lm_data[-trainIndex, ]
+
+# Train a regression tree
+tree_fit <- rpart(co2 ~ ., data = trainData, method = "anova")
+
+# Enhanced visualization
+library(rpart.plot)
+rpart.plot(tree_fit, main = "Regression Tree", type = 3, extra = 101, cex = 0.8)
+
+# Make predictions on the test set
+predictions <- predict(tree_fit, newdata = testData)
+
+# Evaluate model performance
+mse <- mean((testData$co2 - predictions)^2)
+rmse <- sqrt(mse)
+r_squared <- 1 - sum((testData$co2 - predictions)^2) / sum((testData$co2 - mean(testData$co2))^2)
+```
+
+The regression tree model's performance metrics are as follows: the Mean Squared Error (MSE) is `r mse`, the Root Mean Squared Error (RMSE) is `r rmse`, and the R-squared value is `r r_squared`. The MSE and RMSE provide insights into the average prediction error, while the value indicates the proportion of variance in the co2 variable explained by the model, reflecting its overall predictive effectiveness.
+
+```{r}
+# Calculate the 10th percentile of feScore
+lower_bound <- quantile(testData$co2, 0.1)
+
+# Subset data for the lowest 10%
+lowest_10 <- testData[testData$co2 <= lower_bound, ]
+```
+```{r}
+# Generate predictions for the lowest 10%
+lowest_10_predictions <- predict(tree_fit, newdata = lowest_10)
+
+# Calculate RMSE and R² for the lowest 10%
+mse_lowest_10 <- mean((lowest_10$co2 - lowest_10_predictions)^2)
+rmse_lowest_10 <- sqrt(mse_lowest_10)
+r_squared_lowest_10 <- 1 - sum((lowest_10$co2 - lowest_10_predictions)^2) /
+                             sum((lowest_10$co2 - mean(lowest_10$co2))^2)
+```
+When comparing these overall performance metrics to those for the lowest 10% of co2 values, where the RMSE is `r rmse_lowest_10` and is `r r_squared_lowest_10`, it is evident that the model performs significantly better across the full dataset than it does for this subset of extreme values. The negative for the lowest 10% highlights that the model struggles to capture patterns in these low-emission instances, underscoring the need for additional refinement or alternative modeling approaches to improve accuracy for critical outliers.
+
+Feature importance was calculated to identify the predictors contributing most significantly to the regression tree model. The importance scores were extracted and converted into a data frame, preserving the feature names for clarity. The top 10 features, ranked by their importance scores, were selected and visualized using a bar chart created with ggplot2.
+
+The bar chart displays the relative contribution of each feature, providing a clear visual representation of the variables that have the greatest impact on predicting CO2 emissions. This analysis highlights key predictors, offering insights into which vehicle attributes are most influential in determining emissions. The results enable a focused interpretation of the regression tree model and guide further refinement and policy considerations.
+
+```{r}
+# Convert importance scores to a data frame, keeping correct row names
+feature_importance <- varImp(tree_fit)
+importance_df <- as.data.frame(feature_importance$Overall)
+importance_df$Feature <- rownames(feature_importance)  # Preserve proper feature names
+colnames(importance_df) <- c("Importance", "Feature")  # Rename columns for clarity
+
+top_10_features <- importance_df[order(-importance_df$Importance), ][1:10, ]
+
+# Create a bar chart
+ggplot(top_10_features, aes(x = reorder(Feature, Importance), y = Importance)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Feature Importance", x = "Feature", y = "Importance Score") +
+  theme_minimal()
+```
+
+The Feature Importance analysis highlights key predictors for CO2 emissions identified by the regression tree model. Engine displacement (displ) emerged as the most significant factor, indicating the critical role of engine size in determining emissions. Hybrid vehicle types, particularly atvTypePlug.in.Hybrid and atvTypeHybrid, also ranked highly, reflecting the impact of electrification on reducing emissions. Additionally, the number of cylinders (cylinders) and the guzzler tax indicator (guzzlerG) were influential, linking engine characteristics and tax policies to emissions. Drivetrain configurations, such as driveFront.Wheel.Drive and driveAll.Wheel.Drive, further contributed, highlighting their effect on fuel efficiency and CO2 output.
+
+### **References**
+
+EPA Press Office(2024, November 25).EPA Report Shows US Fuel Economy Hits Record High, CO2 Emissions Reach a Record Low.<br>
+<div style="margin-left: 20px;"><https://www.epa.gov/newsreleases/epa-report-shows-us-fuel-economy-hits-record-high-and-co2-emissions-reach-record-low#></div>
+<div style="margin: 20px 0">
+
+Mahendru, K. (2019, June 17). *How to determine the optimal K for K-means?*. Medium.<br>
+<div style="margin-left: 20px;"><https://medium.com/analytics-vidhya/how-to-determine-the-optimal-k-for-k-means-708505d204eb></div>
+<div style="margin: 20px 0">
+
+U.S. Department of Energy. (n.d.). *Fueleconomy.gov web services*. www.fueleconomy.gov.<br>
+<div style="margin-left: 20px;"><https://www.fueleconomy.gov/feg/ws/index.shtml#vehicle></div>
