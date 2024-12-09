@@ -3548,7 +3548,7 @@ Tue Jan 01 00:00:00 EST 2013
 diesel and petrol vehicles, particularly in the context of the growing
 popularity of electric vehicles (EVs) around 2018. To align with this
 focus, the dataset was initially filtered to include only records from
-2018 onwards. Following this, columns related to electric vehicles,
+2020 onwards. Following this, columns related to electric vehicles,
 which do not contribute to direct CO2 emissions, were removed to ensure
 the analysis remained relevant to the study’s objectives.</p>
 <p>During the data cleaning process, null values were identified in
@@ -3563,7 +3563,7 @@ unique values), while label encoding was used for those with high
 cardinality (more than 10 unique values). These steps ensured that the
 dataset was structured, relevant, and ready for a focused analysis on
 CO2 emissions from diesel and petrol vehicles.</p>
-<pre class="r"><code>#defining the unwanted columns (columns realted to fuel type 2 and ev)
+<pre class="r"><code>#defining the unwanted columns (columns related to electric vehicles)
 unwantedlist &lt;- c(
   &quot;barrelsA08&quot;,
   &quot;cityA08&quot;,
@@ -3619,7 +3619,7 @@ unwantedlist &lt;- c(
 )
 cleaned_df &lt;- df %&gt;% select(-all_of(unwantedlist))
 
-#considering only from year 2013
+#considering only from year 2020
 cleaned_df &lt;- cleaned_df %&gt;%
   filter(year %in% (2020:2024))
 
@@ -3729,11 +3729,10 @@ print(head(final_data))</code></pre>
 linear_df &lt;- final_data %&gt;%select(-c(trany, eng_dscr, VClass))
 #remove any mpg because co2 is directly related to mpg (which is tailpipe CO2 in grams/mile)
 #also remove barrels08 as it is basically proportional to co2
-#linear_df &lt;- linear_df %&gt;%select(-c(comb08, UCity, UHighway, highway08, city08, barrels08))
 linear_df &lt;- linear_df %&gt;%select(-c(comb08,UCity,UHighway,highway08, city08, barrels08))</code></pre>
 </div>
-<div id="feature-engineering" class="section level3">
-<h3><strong>Feature Engineering</strong></h3>
+<div id="feature-selection" class="section level3">
+<h3><strong>Feature Selection</strong></h3>
 <p>In this study, an exhaustive method was employed in conjunction with
 linear regression to identify the most important features. The
 exhaustive method systematically evaluates every possible combination of
@@ -3797,7 +3796,6 @@ indicating a high degree of multicollinearity.</p>
 <pre class="r"><code>#remove the highest VIF
 lm_data &lt;- selected_data %&gt;%
   select(-youSaveSpend)
-#lm_data &lt;- lm_data %&gt;%select(-cylinders)
 lm_data &lt;- lm_data %&gt;%
   select(-fuelCost08)
 
@@ -4244,12 +4242,12 @@ sustainable.</p>
 <p>How accurately does the regression tree model predict the lowest 10%
 of feScore values in the dataset, and which features contribute most
 significantly to improving prediction accuracy for these instances
-between 2018 and 2025?</p>
+between 2020 and 2024?</p>
 <div id="method-1" class="section level4">
 <h4><strong>Method</strong></h4>
 <p>To evaluate the predictive accuracy of the regression tree model in
-identifying the lowest 10% of feScore values in the dataset between 2018
-and 2025, a structured approach was employed. The dataset was divided
+identifying the lowest 10% of feScore values in the dataset between 2020
+and 2024, a structured approach was employed. The dataset was divided
 into training (70%) and testing (30%) sets using stratified random
 sampling to ensure balanced representation of the co2 variable. A
 regression tree model was then developed using the rpart package, with
