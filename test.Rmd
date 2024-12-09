@@ -6,7 +6,6 @@ output:
   code_folding: hide
 number_sections: false
 toc: yes
-toc_depth: 3
 toc_float: yes
 pdf_document:
   toc: yes
@@ -27,9 +26,11 @@ library(caret)
 
 ```{r pi}
 #load the dataset
-df <- read.csv('Fuel Economy Data.csv')
+df <- read.csv('/Users/hariprasannaa/Downloads/vehicles.csv')
 ```
-
+```{r}
+summary(df)
+```
 ```{r modify}
 
 #defining the unwanted columns (columns realted to fuel type 2 and ev)
@@ -95,8 +96,6 @@ cleaned_df <- cleaned_df %>%
 #removing ev vehicles
 cleaned_df <- cleaned_df[!is.na(cleaned_df$cylinders) & cleaned_df$cylinders != "Electricity",]
 ```
-
-
 ```{r}
 #check the number of missing values for each column
 missing_values <- colSums(is.na(cleaned_df))
@@ -111,24 +110,17 @@ zero_count_per_column <- cleaned_df %>%
 
 zero_count_per_column
 ```
-
 ```{r}
 #remove columns that are for car identification
-cleaned_df <- cleaned_df %>%
-  select(-c(createdOn, mfrCode,
-            baseModel,
-            model, make, id,
-            mpgData))
+#cleaned_df <- cleaned_df %>%select(-c(createdOn, mfrCode,baseModel,model, make, id,mpgData))
+#cleaned_df <- cleaned_df %>%select(-c(createdOn, mfrCode,baseModel,model, make, id,mpgData))
+cleaned_df <- cleaned_df %>%select(-c(createdOn,mfrCode,baseModel,model,make,id,mpgData,year))
 #remove redundant columns and ghg score and fescore, which would be another dependent variable
-cleaned_df <- cleaned_df %>%
-  select(-c(co2TailpipeGpm, ghgScore, ghgScoreA, fuelType, feScore))
+#cleaned_df <- cleaned_df %>%select(-c(co2TailpipeGpm, ghgScore, ghgScoreA, fuelType, feScore))
+cleaned_df <- cleaned_df %>%select(-c(co2TailpipeGpm, fuelType, feScore, ghgScore, ghgScoreA,fuelType1))
 #remove empty column
-cleaned_df <- cleaned_df %>%
-  select(-trans_dscr)
+cleaned_df <- cleaned_df %>%select(-trans_dscr,atvType)
 ```
-
-
-
 ```{r}
 #Identify categorical columns and their unique value counts
 categorical_columns <- sapply(cleaned_df, function(col) is.character(col) || is.factor(col))
@@ -140,6 +132,7 @@ label_columns <- names(unique_values[unique_values > 10])
 
 #Applying One-Hot Encoding
 if (length(one_hot_columns) > 0) {
+  print(one_hot_columns)
   one_hot_encoded <- dummyVars(~ ., data = cleaned_df[one_hot_columns], fullRank = TRUE)
   one_hot_df <- data.frame(predict(one_hot_encoded, newdata = cleaned_df))
 }
@@ -155,19 +148,14 @@ final_data <- bind_cols(cleaned_df %>% select(-one_hot_columns), one_hot_df)
 #View the first few rows of the encoded dataset
 print(head(final_data))
 ```
-
 ```{r}
 #removing categorical variables with two many categories - avoid overfitting
-linear_df <- final_data %>%
-  select(-c(eng_dscr, trany, VClass))
+linear_df <- final_data %>%select(-c(trany))
 #remove any mpg because co2 is directly related to mpg (which is tailpipe CO2 in grams/mile)
 #also remove barrels08 as it is basically proportional to co2
-linear_df <- linear_df %>%
-  select(-c(comb08, UCity, UHighway, highway08, city08, barrels08))
+#linear_df <- linear_df %>%select(-c(comb08, UCity, UHighway, highway08, city08, barrels08))
+linear_df <- linear_df %>%select(-c(comb08,UCity,UHighway,highway08, city08, barrels08))
 ```
-
-
-
 ```{r}
 library(leaps)
 regfit_full <- regsubsets(co2 ~ ., data = linear_df, nvmax = 35)
@@ -190,7 +178,6 @@ selected_vars <- names(which(reg_summary$which[best_model_size, ])) %>%
 selected_data <- final_data %>%
   select(all_of(selected_vars)) %>%
   mutate(co2 = final_data$co2) #add our dependent variable
-
 ```
 
 ```{r}
@@ -212,8 +199,7 @@ print(vif_df)
 #remove the highest VIF
 lm_data <- selected_data %>%
   select(-youSaveSpend)
-lm_data <- lm_data %>%
-  select(-cylinders)
+#lm_data <- lm_data %>%select(-cylinders)
 lm_data <- lm_data %>%
   select(-fuelCost08)
 
@@ -224,7 +210,6 @@ vif_df <- as.data.frame(vif_values) %>%
   rownames_to_column(var = "Variable")
 print(vif_df)
 ```
-
 ```{r}
 lm_model <- lm(co2 ~ ., data = lm_data)
 summary(lm_model)
@@ -232,4 +217,93 @@ summary(lm_model)
 
 ```{r}
 plot(lm_model)
+```
+```{r}
+library(rpart)
+#Building a regression tree
+tree_model <- rpart(co2 ~ ., data = lm_data, method = "anova")
+
+#Plotting the built tree
+plot(tree_model, uniform=TRUE, main="Classification Tree")
+text(tree_model, use.n=TRUE, all=TRUE, cex=.8)
+```
+```{r}
+# Load necessary libraries
+library(rpart)
+library(caret)
+
+# Split the data into training and testing sets
+set.seed(123) # For reproducibility
+trainIndex <- createDataPartition(lm_data$co2, p = 0.7, list = FALSE)
+trainData <- lm_data[trainIndex, ]
+testData <- lm_data[-trainIndex, ]
+
+# Train a regression tree
+tree_fit <- rpart(co2 ~ ., data = trainData, method = "anova")
+
+# Visualize the tree
+plot(tree_fit, uniform = TRUE, main = "Regression Tree")
+text(tree_fit, use.n = TRUE, all = TRUE, cex = 0.8)
+
+# Enhanced visualization (optional)
+library(rpart.plot)
+rpart.plot(tree_fit, main = "Regression Tree", type = 3, extra = 101, cex = 0.8)
+
+# Make predictions on the test set
+predictions <- predict(tree_fit, newdata = testData)
+
+# Evaluate model performance
+mse <- mean((testData$co2 - predictions)^2)
+rmse <- sqrt(mse)
+r_squared <- 1 - sum((testData$co2 - predictions)^2) / sum((testData$co2 - mean(testData$co2))^2)
+
+# Print metrics
+cat("Mean Squared Error (MSE):", mse, "\n")
+cat("Root Mean Squared Error (RMSE):", rmse, "\n")
+cat("R-Squared:", r_squared, "\n")
+```
+```{r}
+# Calculate the 10th percentile of feScore
+lower_bound <- quantile(testData$co2, 0.1)
+
+# Subset data for the lowest 10%
+lowest_10 <- testData[testData$co2 <= lower_bound, ]
+```
+```{r}
+# Generate predictions for the lowest 10%
+lowest_10_predictions <- predict(tree_fit, newdata = lowest_10)
+
+# Calculate RMSE and R² for the lowest 10%
+mse_lowest_10 <- mean((lowest_10$co2 - lowest_10_predictions)^2)
+rmse_lowest_10 <- sqrt(mse_lowest_10)
+r_squared_lowest_10 <- 1 - sum((lowest_10$co2 - lowest_10_predictions)^2) /
+                             sum((lowest_10$co2 - mean(lowest_10$co2))^2)
+
+cat("RMSE for lowest 10%:", rmse_lowest_10, "\n")
+cat("R² for lowest 10%:", r_squared_lowest_10, "\n")
+```
+```{r}
+library(caret)
+feature_importance <- varImp(tree_fit)
+print(feature_importance)
+```
+```{r}
+library(ggplot2)
+
+# Convert importance scores to a data frame, keeping correct row names
+importance_df <- as.data.frame(feature_importance$Overall)
+importance_df$Feature <- rownames(feature_importance)  # Preserve proper feature names
+colnames(importance_df) <- c("Importance", "Feature")  # Rename columns for clarity
+
+top_10_features <- importance_df[order(-importance_df$Importance), ][1:10, ]
+
+# Create a bar chart
+ggplot(top_10_features, aes(x = reorder(Feature, Importance), y = Importance)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Feature Importance", x = "Feature", y = "Importance Score") +
+  theme_minimal()
+
+# Check the structure of the data frame
+print(importance_df)
 ```
