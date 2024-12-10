@@ -92,8 +92,6 @@ summary(df)
 
 The primary objective of this study was to analyze CO2 emissions from diesel and petrol vehicles, particularly in the context of the growing popularity of electric vehicles (EVs) around 2020. To align with this focus, the dataset was initially filtered to include only records from 2020 onwards. Following this, columns related to electric vehicles, which do not contribute to direct CO2 emissions, were removed to ensure the analysis remained relevant to the study's objectives.
 
-The primary objective of this study was to analyze CO2 emissions from diesel and petrol vehicles, particularly in the context of the growing popularity of electric vehicles (EVs) around 2018. To align with this focus, the dataset was initially filtered to include only records from 2020 onwards. Following this, columns related to electric vehicles, which do not contribute to direct CO2 emissions, were removed to ensure the analysis remained relevant to the study's objectives.
-
 During the data cleaning process, null values were identified in several categorical columns. To handle these missing values while preserving the overall data distribution, mode imputation was applied. Columns with only one unique value were also removed, as they offered no useful variability for analysis.
 
 To prepare the data for analysis, categorical variables were converted into numerical formats based on their cardinality. One-hot encoding was applied to variables with low cardinality (fewer than 10 unique values), while label encoding was used for those with high cardinality (more than 10 unique values). These steps ensured that the dataset was structured, relevant, and ready for a focused analysis on CO2 emissions from diesel and petrol vehicles.
