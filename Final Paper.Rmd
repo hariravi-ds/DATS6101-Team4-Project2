@@ -341,13 +341,13 @@ predicted <- lm_model$fitted.values
 residuals <- lm_model$residuals
 
 ggplot(data.frame(Predicted = predicted, Residuals = residuals), aes(x = Predicted, y = Residuals)) +
-  geom_point(alpha = 0.6) +
+  geom_point(alpha = 0.6, color="lightblue") +
   geom_hline(yintercept = 0, linetype = "dashed", color = "lightcoral") +
   labs(title = "Residuals vs Predicted", x = "Predicted Values", y = "Residuals") +
   theme_minimal()
 
 # Q-Q plot for normality of residuals
-qqnorm(residuals)
+qqnorm(residuals, col = "lightblue")
 qqline(residuals, col = "lightcoral")
 ```
 
@@ -368,13 +368,12 @@ test_predictions <- predict(lm_train_model, newdata = test_data)
 test_residuals <- test_data$co2 - test_predictions
 
 
-rmse <- sqrt(mean(test_residuals^2))
+rmse <- round(sqrt(mean(test_residuals^2)), 2)
 r_squared <- 1 - (sum(test_residuals^2) / sum((test_data$co2 - mean(test_data$co2))^2))
-
-print(paste("Test RMSE:", round(rmse, 2)))
-print(paste("Test R-squared:", round(r_squared, 2)))
-
 ```
+The model's performance is as follows:  
+- *RMSE*: `r rmse`  
+- *R-squared*: `r r_squared`
 
 Model Validation: We split the data into training and test sets using an 80/20 split. A linear model was fitted using the lm() function in R, including all relevant predictors. Model evaluation was done using metrics such as RMSE (Root Mean Squared Error) and R-squared. The results indicated a Test RMSE of 47.95 and a Test R-squared of 0.81, suggesting a strong model fit with good predictive power.
 
