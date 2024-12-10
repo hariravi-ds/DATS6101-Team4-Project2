@@ -294,7 +294,7 @@ To take a quick look at how the variables are distributed:
 ```{r histograms}
 # Histogram for Displacement
 ggplot(lm_data, aes(x = displ)) + 
-  geom_histogram(binwidth = 0.5, fill = "lightgreen", color = "black", alpha = 0.7) + 
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "blue", alpha = 0.7) + 
   labs(title = "Histogram of Engine Displacement", x = "Engine Displacement (L)", y = "Frequency") +
   theme_minimal()
 ```
@@ -308,7 +308,7 @@ ggplot(cleaned_df, aes(x = drive, fill = drive)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 - Atv (advanced technology vehicle) type
-```{r box_drive}
+```{r atv_type}
 # Histogram for Atv
 ggplot(cleaned_df, aes(x = atvType, fill = atvType)) +
   geom_bar() +
@@ -317,7 +317,7 @@ ggplot(cleaned_df, aes(x = atvType, fill = atvType)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 The label empty vehicle indicates regular fuel type of vehicles.
-  
+
 
 ### **Research Question 1**
 
@@ -342,13 +342,13 @@ residuals <- lm_model$residuals
 
 ggplot(data.frame(Predicted = predicted, Residuals = residuals), aes(x = Predicted, y = Residuals)) +
   geom_point(alpha = 0.6) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "lightcoral") +
   labs(title = "Residuals vs Predicted", x = "Predicted Values", y = "Residuals") +
   theme_minimal()
 
 # Q-Q plot for normality of residuals
 qqnorm(residuals)
-qqline(residuals, col = "red")
+qqline(residuals, col = "lightcoral")
 ```
 
 Residuals vs Predicted
@@ -380,8 +380,8 @@ Model Validation: We split the data into training and test sets using an 80/20 s
 
 ```{r viz}
 ggplot(data.frame(Actual = test_data$co2, Predicted = test_predictions), aes(x = Actual, y = Predicted)) +
-  geom_point(alpha = 0.6, color = "blue") +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  geom_point(alpha = 0.6, color = "lightblue") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "lightcoral") +
   labs(title = "Predicted vs. Actual CO2 Emissions", x = "Actual CO2", y = "Predicted CO2") +
   theme_minimal()
 
@@ -395,8 +395,8 @@ The key findings from the model show that the number of cylinders and engine dis
 
 ```{r corr}
 ggplot(lm_data, aes(x = displ, y = co2)) + 
-  geom_point(alpha = 0.5, color = "blue") +
-  geom_smooth(method = "lm", color = "red") +
+  geom_point(alpha = 0.5, color = "lightblue") +
+  geom_smooth(method = "lm", color = "lightcoral") +
   labs(title = "CO2 Emissions vs. Engine Displacement", x = "Engine Displacement", y = "C02 Emissions") +
   theme_minimal()
 
@@ -602,7 +602,7 @@ top_10_features <- importance_df[order(-importance_df$Importance), ][1:10, ]
 
 # Create a bar chart
 ggplot(top_10_features, aes(x = reorder(Feature, Importance), y = Importance)) +
-  geom_bar(stat = "identity") +
+  geom_bar(stat = "identity", fill="lightblue", color="blue") +
   coord_flip() +
   labs(title = "Feature Importance", x = "Feature", y = "Importance Score") +
   theme_minimal()
@@ -610,26 +610,21 @@ ggplot(top_10_features, aes(x = reorder(Feature, Importance), y = Importance)) +
 
 The Feature Importance analysis highlights key predictors for CO2 emissions identified by the regression tree model. Engine displacement (displ) emerged as the most significant factor, indicating the critical role of engine size in determining emissions. Hybrid vehicle types, particularly atvTypePlug.in.Hybrid and atvTypeHybrid, also ranked highly, reflecting the impact of electrification on reducing emissions. Additionally, the number of cylinders (cylinders) and the guzzler tax indicator (guzzlerG) were influential, linking engine characteristics and tax policies to emissions. Drivetrain configurations, such as driveFront.Wheel.Drive and driveAll.Wheel.Drive, further contributed, highlighting their effect on fuel efficiency and CO2 output.
 
+### **Conclusion**
+
+This study examined the factors influencing CO2 emissions in modern vehicles, focusing on models from 2020 to 2024. Through linear regression, clustering, and regression tree analyses, critical predictors such as engine displacement, number of cylinders, and drivetrain configurations were identified as significant contributors to emissions. Clustering analysis revealed distinct vehicle groups, with smaller-engine, fuel-efficient vehicles emerging as the most sustainable, while larger-engine vehicles exhibited the highest emissions. These findings highlight the importance of targeting high-emission vehicle types and promoting hybrid and compact car technologies for reducing overall emissions.
+
+While the regression tree model effectively captured patterns in the dataset, its lower accuracy for predicting the lowest-emission vehicles suggests the need for further refinement to address outliers and extreme cases. Overall, this study underscores the critical role of vehicle attributes in shaping CO2 emissions and offers insights that can guide policymakers and automotive manufacturers in developing effective strategies to promote sustainability and reduce environmental impacts.
+
 ### **References**
 
 EPA Press Office(2024, November 25).EPA Report Shows US Fuel Economy Hits Record High, CO2 Emissions Reach a Record Low.<br>
-
-::: {style="margin-left: 20px;"}
-<https://www.epa.gov/newsreleases/epa-report-shows-us-fuel-economy-hits-record-high-and-co2-emissions-reach-record-low#>
-:::
-
+<div style="margin-left: 20px"><https://www.epa.gov/newsreleases/epa-report-shows-us-fuel-economy-hits-record-high-and-co2-emissions-reach-record-low#></div>
 <div style="margin: 20px 0">
 
 Mahendru, K. (2019, June 17). *How to determine the optimal K for K-means?*. Medium.<br>
-
-::: {style="margin-left: 20px;"}
-<https://medium.com/analytics-vidhya/how-to-determine-the-optimal-k-for-k-means-708505d204eb>
-:::
-
+<div style="margin-left: 20px;"><https://medium.com/analytics-vidhya/how-to-determine-the-optimal-k-for-k-means-708505d204eb></div>
 <div style="margin: 20px 0">
 
 U.S. Department of Energy. (n.d.). *Fueleconomy.gov web services*. www.fueleconomy.gov.<br>
-
-::: {style="margin-left: 20px;"}
-<https://www.fueleconomy.gov/feg/ws/index.shtml#vehicle>
-:::
+<div style="margin-left: 20px;"><https://www.fueleconomy.gov/feg/ws/index.shtml#vehicle></div>
